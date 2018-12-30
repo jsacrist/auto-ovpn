@@ -3,6 +3,37 @@
 
 import os
 import glob
+import yaml
+
+
+#%% "Global" variables
+REQUIRED_VARS = ['VPN_NAME', 'SERVER_ALIASES', 'NET_ADDRESS', 'NET_MASK', 'SERVER_ADDRESS',
+                 'DNS_ADDRESS', 'KEY_DIR', 'OUTPUT_DIR']
+
+DEFAULT_VALUES = dict(SERVER_PROTO='tcp',
+                      SERVER_PORT_OUT=1194,
+                      SERVER_PORT_IN=1194,
+                      IFACE='eth0',
+                      CIPHER='AES-256-CBC',
+                      CONFIG_PATH='/etc/openvpn',
+                      SLEEP_TIME=10)
+
+
+#%% Misc. Functions
+def parse_options_from_yaml(yaml_file):
+    with open(yaml_file, 'r') as myfile:
+        cfg = yaml.load(myfile.read())
+
+    # Validate that the required variables were provided
+    for x in REQUIRED_VARS:
+        assert x in cfg, f"The provided YAML file does not contain the required value for[{x}]"
+
+    # Use default values for the variables that no value was provided, if one was provided use that instead.
+    for x in DEFAULT_VALUES:
+        if x not in cfg:
+            cfg[x] = DEFAULT_VALUES[x]
+
+    return cfg
 
 
 def verify_or_make_dir(some_dir):
@@ -11,7 +42,6 @@ def verify_or_make_dir(some_dir):
 
 
 #%% Template-filling functions
-
 def fill_server_values(key_dir, server_address, server_port_in, config_path="/etc/openvpn",
                        server_proto="tcp", server_mask="255.255.255.0", cipher="AES-256-CBC", ):
 
@@ -236,3 +266,29 @@ def write_all_client_profiles(output_dir, vpn_name, dns_address, key_dir, server
     for client_name in existing_clients:
         write_client_profiles(output_dir, vpn_name, dns_address, key_dir, client_name, server_port_out, server_aliases,
                               server_proto, cipher)
+
+
+def write_complete_config(cfg):
+    write_server_config(output_dir=cfg['OUTPUT_DIR'],
+                        key_dir=cfg['KEY_DIR'],
+                        server_address=cfg['SERVER_ADDRESS'],
+                        server_port_in=cfg['SERVER_PORT_IN'],
+                        config_path=cfg['CONFIG_PATH'],
+                        server_proto=cfg['SERVER_PROTO'],
+                        server_mask=cfg['NET_MASK'],
+                        cipher=cfg['CIPHER'])
+
+    write_firewall_config(output_dir=cfg['OUTPUT_DIR'],
+                          server_network=cfg['NET_ADDRESS'],
+                          server_port_in=cfg['SERVER_PORT_IN'],
+                          server_iface=cfg['IFACE'],
+                          server_proto=cfg['SERVER_PROTO'])
+
+    write_all_client_profiles(output_dir=cfg['OUTPUT_DIR'],
+                              vpn_name=cfg['VPN_NAME'],
+                              dns_address=cfg['DNS_ADDRESS'],
+                              key_dir=cfg['KEY_DIR'],
+                              server_port_out=cfg['SERVER_PORT_OUT'],
+                              server_aliases=cfg['SERVER_ALIASES'],
+                              server_proto=cfg['SERVER_PROTO'],
+                              cipher=cfg['CIPHER'])

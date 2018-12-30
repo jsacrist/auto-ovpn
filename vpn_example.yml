@@ -1,19 +1,24 @@
+# Mandatory variables
 VPN_NAME: yourvpnname
 SERVER_ALIASES:
- - your.domain.goes.here.com
+  - your.domain.goes.here.com
+
 
 NET_ADDRESS: 10.0.0.0
+NET_MASK: 255.255.255.0
 SERVER_ADDRESS: 10.0.0.1
 DNS_ADDRESS: 192.168.1.254 # The IP of the router to which this server will be connected
                            # If in doubt, go to your openvpn server and run `nslookup google.com | grep -i server`
 
+
+KEY_DIR: /path/to/your/certificate_authority/keys # The directory that contains the keys of each client
+OUTPUT_DIR: /path/where/openvpn_profiles/should/be/saved/
+
+# Optional variables, if they are not provided, a default value will be used.
 SERVER_PROTO: tcp
 SERVER_PORT_OUT: 1194
 SERVER_PORT_IN=: 1194
 IFACE: eth0
-
-KEY_DIR: /path/to/your/certificate_authority/keys # The directory that contains the keys of each client
-OUTPUT_DIR: /path/where/openvpn_profiles/should/be/saved/
 
 CIPHER: AES-256-CBC
 CONFIG_PATH: /etc/openvpn

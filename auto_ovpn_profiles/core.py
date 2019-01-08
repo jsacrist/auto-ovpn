@@ -42,7 +42,7 @@ def verify_or_make_dir(some_dir):
 
 
 #%% Template-filling functions
-def fill_server_values(key_dir, server_address, server_port_in, config_path="/etc/openvpn",
+def fill_server_values(key_dir, server_network, server_port_in, config_path="/etc/openvpn",
                        server_proto="tcp", server_mask="255.255.255.0", cipher="AES-256-CBC", ):
 
     # Open the files containing keys, certificates, etc.
@@ -63,8 +63,8 @@ def fill_server_values(key_dir, server_address, server_port_in, config_path="/et
 
     # Fill-in the 'template' with the contents of keys, certificates, etc...
     server_file_contents = \
-        f"# {server_address} will be a new VPN, must not conflict with existing nets\n" + \
-        f"server {server_address} {server_mask}\n" + \
+        f"# {server_network} will be a new VPN, must not conflict with existing nets\n" + \
+        f"server {server_network} {server_mask}\n" + \
         f"cipher {cipher}\n" + \
         f"proto {server_proto}\n" + \
         f"port {server_port_in}\n" + \
@@ -202,12 +202,12 @@ def fill_client_values(dns_address, key_dir, client_name, server_port_out, serve
 
 
 #%% File-writing functions
-def write_server_config(output_dir, key_dir, server_address, server_port_in, config_path="/etc/openvpn",
-                        server_proto="tcp", server_mask="255.255.255.0", cipher="AES-256-CBC",):
+def write_server_config(output_dir, key_dir, server_network, server_port_in, config_path="/etc/openvpn",
+                        server_proto="tcp", server_mask="255.255.255.0", cipher="AES-256-CBC", ):
     """
     """
     # Read the files found in key_dir and create a string variable with the config. file contents
-    config_file_contents = fill_server_values(key_dir, server_address, server_port_in,
+    config_file_contents = fill_server_values(key_dir, server_network, server_port_in,
                                               config_path, server_proto, server_mask, cipher)
 
     # Write config to file
@@ -271,7 +271,8 @@ def write_all_client_profiles(output_dir, vpn_name, dns_address, key_dir, server
 def write_complete_config(cfg):
     write_server_config(output_dir=cfg['OUTPUT_DIR'],
                         key_dir=cfg['KEY_DIR'],
-                        server_address=cfg['SERVER_ADDRESS'],
+                        # server_address=cfg['SERVER_ADDRESS'],
+                        server_network=cfg['NET_ADDRESS'],
                         server_port_in=cfg['SERVER_PORT_IN'],
                         config_path=cfg['CONFIG_PATH'],
                         server_proto=cfg['SERVER_PROTO'],

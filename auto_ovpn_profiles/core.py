@@ -36,6 +36,13 @@ def parse_options_from_yaml(yaml_file):
     return cfg
 
 
+def parse_client_yaml_file(yaml_file):
+    with open(yaml_file, 'r') as myfile:
+        clients = yaml.load(myfile.read())
+    dir_name = os.path.dirname(yaml_file) # os.path.dirname(os.path.abspath('../personal_networks_cfg'))
+    return clients, dir_name
+
+
 def verify_or_make_dir(some_dir):
     if not os.path.exists(some_dir):
         os.makedirs(some_dir)
@@ -204,6 +211,7 @@ def fill_client_values(dns_address, key_dir, client_name, server_port_out, serve
 #%% File-writing functions
 def write_server_config(output_dir, key_dir, server_address, server_port_in, config_path="/etc/openvpn",
                         server_proto="tcp", server_mask="255.255.255.0", cipher="AES-256-CBC",):
+    #TODO: should server_mask be called net_mask?
     """
     """
     # Read the files found in key_dir and create a string variable with the config. file contents
@@ -212,9 +220,39 @@ def write_server_config(output_dir, key_dir, server_address, server_port_in, con
 
     # Write config to file
     verify_or_make_dir(output_dir)
-
     with open(f"{output_dir}/server.conf", "w") as my_file:
         my_file.write(config_file_contents)
+
+
+def _get_ip_prefix(server_network, net_mask):
+    ip_prefix = ''.join([f"{x}." for (x, y) in zip(server_network.split('.'), net_mask.split('.')) if y != "0"])
+    num_octets = len(ip_prefix.split('.'))
+    ip_prefix = ip_prefix if num_octets == 4 else f"{ip_prefix}0."
+    return ip_prefix
+
+
+def write_server_ipp_file(client_file, output_dir, key_dir, vpn_name, server_network, net_mask):
+    # Write static ip file
+    # client_file
+    client_ip_dict, client_file_dir = parse_client_yaml_file("../personal_networks_cfg/vpn_clients.yml")  # TODO: fix this
+
+    print(f"File dir is {client_file_dir}")
+    clients_existing = get_all_clients_by_keyfiles(key_dir)
+    clients_inner_join = {x: client_ip_dict[x] for x in client_ip_dict if x in clients_existing}
+
+    # TODO: print these two sets
+    clients_existing_but_no_addr = [x for x in clients_existing if x not in client_ip_dict]
+    clients_addr_but_not_existing = {x: client_ip_dict[x] for x in client_ip_dict if x not in clients_existing}
+
+    ip_prefix = _get_ip_prefix(server_network, net_mask)
+    static_ips = f"## ipp.txt for {vpn_name} ({server_network})\n## certificate_client_name,ip_address\n"
+
+    for a_client in clients_inner_join:
+        ip_ending = clients_inner_join[a_client]
+        static_ips += f"{a_client},{ip_prefix}{ip_ending}\n"
+
+    with open(f"{output_dir}/ipp.txt", "w") as my_file:
+        my_file.write(static_ips)
 
 
 def write_firewall_config(output_dir, server_network, server_port_in, server_iface, server_proto="tcp"):
@@ -257,15 +295,19 @@ def write_client_profiles(output_dir, vpn_name, dns_address, key_dir, client_nam
         myfile.write(client_wr)
 
 
-def write_all_client_profiles(output_dir, vpn_name, dns_address, key_dir, server_port_out, server_aliases,
-                              server_proto="tcp", cipher="AES-256-CBC"):
+def get_all_clients_by_keyfiles(key_dir):
     ignore_files = ['ta.key', 'ca.key', 'server.key']
     key_files = glob.glob(f"{key_dir}/*.key")
     existing_clients = [y.split('.')[0] for y in [os.path.basename(x) for x in key_files] if y not in ignore_files]
+    return existing_clients
 
+
+def write_all_client_profiles(output_dir, vpn_name, dns_address, key_dir, server_port_out, server_aliases,
+                              server_proto="tcp", cipher="AES-256-CBC"):
+    existing_clients = get_all_clients_by_keyfiles(key_dir)
     for client_name in existing_clients:
-        write_client_profiles(output_dir, vpn_name, dns_address, key_dir, client_name, server_port_out, server_aliases,
-                              server_proto, cipher)
+        write_client_profiles(output_dir, vpn_name, dns_address, key_dir, client_name,
+                              server_port_out, server_aliases, server_proto, cipher)
 
 
 def write_complete_config(cfg):
@@ -277,6 +319,14 @@ def write_complete_config(cfg):
                         server_proto=cfg['SERVER_PROTO'],
                         server_mask=cfg['NET_MASK'],
                         cipher=cfg['CIPHER'])
+
+    if 'CLIENT_LIST' in cfg:
+        write_server_ipp_file(client_file=cfg['CLIENT_LIST'],
+                              output_dir=cfg['OUTPUT_DIR'],
+                              key_dir=cfg['KEY_DIR'],
+                              vpn_name=cfg['VPN_NAME'],
+                              server_network=cfg['NET_ADDRESS'],
+                              net_mask=cfg['NET_MASK'])
 
     write_firewall_config(output_dir=cfg['OUTPUT_DIR'],
                           server_network=cfg['NET_ADDRESS'],

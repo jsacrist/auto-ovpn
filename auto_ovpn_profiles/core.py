@@ -10,7 +10,8 @@ import yaml
 REQUIRED_VARS = ['VPN_NAME', 'SERVER_ALIASES', 'NET_ADDRESS', 'NET_MASK', 'SERVER_ADDRESS',
                  'DNS_ADDRESS', 'KEY_DIR', 'OUTPUT_DIR']
 
-DEFAULT_VALUES = dict(SERVER_PROTO='tcp',
+DEFAULT_VALUES = dict(CLIENT_LIST=None,
+                      SERVER_PROTO='tcp',
                       SERVER_PORT_OUT=1194,
                       SERVER_PORT_IN=1194,
                       IFACE='eth0',
@@ -33,14 +34,22 @@ def parse_options_from_yaml(yaml_file):
         if x not in cfg:
             cfg[x] = DEFAULT_VALUES[x]
 
+    # Add config file's dir name:
+    cfg['DIR_NAME'] = os.path.dirname(os.path.abspath(yaml_file))
     return cfg
 
 
-def parse_client_yaml_file(yaml_file):
-    with open(yaml_file, 'r') as myfile:
+def parse_client_yaml_file(yaml_file, dir_name):
+    if os.path.exists(yaml_file):
+        found_file = yaml_file
+    elif os.path.exists(f"{dir_name}/{yaml_file}"):
+        found_file = f"{dir_name}/{yaml_file}"
+    else:
+        raise Exception(f"The specified client file [{yaml_file}] was not found")
+
+    with open(found_file, 'r') as myfile:
         clients = yaml.load(myfile.read())
-    dir_name = os.path.dirname(yaml_file) # os.path.dirname(os.path.abspath('../personal_networks_cfg'))
-    return clients, dir_name
+    return clients
 
 
 def verify_or_make_dir(some_dir):
@@ -231,12 +240,12 @@ def _get_ip_prefix(server_network, net_mask):
     return ip_prefix
 
 
-def write_server_ipp_file(client_file, output_dir, key_dir, vpn_name, server_network, net_mask):
-    # Write static ip file
-    # client_file
-    client_ip_dict, client_file_dir = parse_client_yaml_file("../personal_networks_cfg/vpn_clients.yml")  # TODO: fix this
+def write_server_ipp_file(client_file, dir_name, output_dir, key_dir, vpn_name, server_network, net_mask):
+    if client_file is None:
+        print("No client-file provided, won't write ipp.txt...")
+        return
 
-    print(f"File dir is {client_file_dir}")
+    client_ip_dict = parse_client_yaml_file(client_file, dir_name)  # TODO: fix this
     clients_existing = get_all_clients_by_keyfiles(key_dir)
     clients_inner_join = {x: client_ip_dict[x] for x in client_ip_dict if x in clients_existing}
 
@@ -320,13 +329,13 @@ def write_complete_config(cfg):
                         server_mask=cfg['NET_MASK'],
                         cipher=cfg['CIPHER'])
 
-    if 'CLIENT_LIST' in cfg:
-        write_server_ipp_file(client_file=cfg['CLIENT_LIST'],
-                              output_dir=cfg['OUTPUT_DIR'],
-                              key_dir=cfg['KEY_DIR'],
-                              vpn_name=cfg['VPN_NAME'],
-                              server_network=cfg['NET_ADDRESS'],
-                              net_mask=cfg['NET_MASK'])
+    write_server_ipp_file(client_file=cfg['CLIENT_LIST'],
+                          dir_name=cfg['DIR_NAME'],
+                          output_dir=cfg['OUTPUT_DIR'],
+                          key_dir=cfg['KEY_DIR'],
+                          vpn_name=cfg['VPN_NAME'],
+                          server_network=cfg['NET_ADDRESS'],
+                          net_mask=cfg['NET_MASK'])
 
     write_firewall_config(output_dir=cfg['OUTPUT_DIR'],
                           server_network=cfg['NET_ADDRESS'],

@@ -135,12 +135,12 @@ def fill_base_client_values(key_dir, client_name, server_port_out, server_aliase
     with open(f"{key_dir}/ta.key", 'r') as myfile:
         contents_ta_key = myfile.read()
 
-    aliases_str = server_aliases
+    aliases_str = f"remote {server_aliases}"
     if isinstance(server_aliases, list) or isinstance(server_aliases, tuple):
-        aliases_str = ', '.join(server_aliases)
+        aliases_str = '\n'.join([f"remote {x}" for x in server_aliases])
 
     client_file_contents = \
-        f"remote {aliases_str}\n" +\
+        f"{aliases_str}\n" +\
         "client\n" +\
         f"cipher {cipher}\n" + \
         f"proto {server_proto}\n" + \

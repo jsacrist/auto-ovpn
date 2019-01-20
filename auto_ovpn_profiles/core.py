@@ -200,19 +200,19 @@ def fill_client_values(dns_address, key_dir, client_name, server_port_out, serve
 
     # Put together the strings for linux profiles
     client_linux = file_header + "# LINUX profile\n" + client_std
-    client_linux_redir = file_header + "# LINUX profile (redirect)\n" + client_std +\
-                         redir_string +\
-                         "script-security 2\n" +\
-                         f"up \"{resolv_line}\"\n" + \
-                         f"down \"{resolv_line}\"\n" + \
-                         dns_line
+    client_linux_redir = (file_header + "# LINUX profile (redirect)\n" + client_std +
+                          redir_string +
+                          "script-security 2\n" +
+                          f"up \"{resolv_line}\"\n" +
+                          f"down \"{resolv_line}\"\n" +
+                          dns_line)
 
     # Put together the strings for windows profiles
     client_windows = file_header + "# WINDOWS/ANDROID profile\n" + client_std
-    client_windows_redir = file_header + "# WINDOWS/ANDROID profile (redirect)\n" + client_std + \
-                           redir_string + \
-                           "block-outside-dns\n" + \
-                           dns_line
+    client_windows_redir = (file_header + "# WINDOWS/ANDROID profile (redirect)\n" + client_std +
+                            redir_string +
+                            "block-outside-dns\n" +
+                            dns_line)
 
     return client_linux, client_linux_redir, client_windows, client_windows_redir
 
@@ -220,7 +220,7 @@ def fill_client_values(dns_address, key_dir, client_name, server_port_out, serve
 #%% File-writing functions
 def write_server_config(output_dir, key_dir, server_address, server_port_in, config_path="/etc/openvpn",
                         server_proto="tcp", server_mask="255.255.255.0", cipher="AES-256-CBC",):
-    #TODO: should server_mask be called net_mask?
+    # TODO: should server_mask be called net_mask?
     """
     """
     # Read the files found in key_dir and create a string variable with the config. file contents
@@ -240,16 +240,20 @@ def _get_ip_prefix(server_network, net_mask):
     return ip_prefix
 
 
+def _log_clients(vpn_name, message, client_list):
+    print(f"[{vpn_name}] {message}:")
+    print(f'\t{", ".join(client_list)}\n')
+
+
 def write_server_ipp_file(client_file, dir_name, output_dir, key_dir, vpn_name, server_network, net_mask):
     if client_file is None:
-        print("No client-file provided, won't write ipp.txt...")
+        print(f"No client-file provided for {vpn_name}, won't write ipp.txt...")
         return
 
-    client_ip_dict = parse_client_yaml_file(client_file, dir_name)  # TODO: fix this
+    client_ip_dict = parse_client_yaml_file(client_file, dir_name)
     clients_existing = get_all_clients_by_keyfiles(key_dir)
     clients_inner_join = {x: client_ip_dict[x] for x in client_ip_dict if x in clients_existing}
 
-    # TODO: print these two sets
     clients_existing_but_no_addr = [x for x in clients_existing if x not in client_ip_dict]
     clients_addr_but_not_existing = {x: client_ip_dict[x] for x in client_ip_dict if x not in clients_existing}
 
@@ -262,6 +266,17 @@ def write_server_ipp_file(client_file, dir_name, output_dir, key_dir, vpn_name, 
 
     with open(f"{output_dir}/ipp.txt", "w") as my_file:
         my_file.write(static_ips)
+
+    msg_written = "The following clients had their profiles written:"
+    _log_clients(vpn_name, msg_written, clients_inner_join)
+
+    msg_not_in_client_file = ("The following clients have a key-pair, but were " +
+                              f"not written to ipp.txt because they were not found in {client_file}:")
+    _log_clients(vpn_name, msg_not_in_client_file, clients_existing_but_no_addr)
+
+    msg_no_key = (f"The following clients were found in {client_file}, but had no " +
+                  f"key-pair and were not written")
+    _log_clients(vpn_name, msg_no_key, clients_addr_but_not_existing)
 
 
 def write_firewall_config(output_dir, server_network, server_port_in, server_iface, server_proto="tcp"):

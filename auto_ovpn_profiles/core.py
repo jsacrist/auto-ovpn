@@ -1,26 +1,24 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 import os
 import glob
 import yaml
 
 
 #%% "Global" variables
-REQUIRED_VARS = ['VPN_NAME', 'SERVER_ALIASES', 'NET_ADDRESS', 'NET_MASK', 'SERVER_ADDRESS',
-                 'DNS_ADDRESS', 'KEY_DIR', 'OUTPUT_DIR']
+REQUIRED_VARS = ['VPN_NAME', 'SERVER_ALIASES', 'NET_ADDRESS', 'NET_MASK',
+                 'SERVER_ADDRESS', 'DNS_ADDRESS', 'KEY_DIR', 'OUTPUT_DIR']
 
 DEFAULT_VALUES = dict(CLIENT_LIST=None,
                       SERVER_PROTO='tcp',
                       SERVER_PORT_OUT=1194,
                       SERVER_PORT_IN=1194,
-                      IFACE='eth0',
                       CIPHER='AES-256-CBC',
                       CONFIG_PATH='/etc/openvpn',
                       SLEEP_TIME=10)
 
 
-#%% Misc. Functions
+#%% Parser Functions
 def parse_options_from_yaml(yaml_file):
     with open(yaml_file, 'r') as myfile:
         cfg = yaml.load(myfile.read())
@@ -58,8 +56,8 @@ def verify_or_make_dir(some_dir):
 
 
 #%% Template-filling functions
-def fill_server_values(key_dir, server_address, server_port_in, config_path="/etc/openvpn",
-                       server_proto="tcp", server_mask="255.255.255.0", cipher="AES-256-CBC", ):
+def fill_server_values(key_dir, server_address, server_port_in, config_path,
+                       server_proto, server_mask, cipher):
 
     # Open the files containing keys, certificates, etc.
     with open(f"{key_dir}/ca.crt", 'r') as myfile:
@@ -106,7 +104,7 @@ def fill_server_values(key_dir, server_address, server_port_in, config_path="/et
     return server_file_contents
 
 
-def fill_firewall_values(server_network, server_port_in, server_iface, server_proto="tcp"):
+def fill_firewall_values(server_network, server_port_in, server_proto):
     firewall_file_contents = \
         "################################################################################\n" +\
         "## FIREWALL START\n" +\
@@ -120,14 +118,14 @@ def fill_firewall_values(server_network, server_port_in, server_iface, server_pr
         f"iptables --insert INPUT 1 --protocol {server_proto} --dport {server_port_in} --jump ACCEPT\n\n" +\
         "# Re-route traffic from VPN clients to the internet\n" +\
         f"iptables -I FORWARD 1 --source {server_network}/24 -j ACCEPT\n" +\
-        f"iptables -t nat -A POSTROUTING -s {server_network}/24 -o {server_iface} -j MASQUERADE\n\n" +\
+        f"iptables -t nat -A POSTROUTING -s {server_network}/24 ! -d {server_network}/24 -j MASQUERADE\n\n" +\
         "## FIREWALL END\n" +\
         "################################################################################\n"
     return firewall_file_contents
 
 
 def fill_base_client_values(key_dir, client_name, server_port_out, server_aliases,
-                            server_proto="tcp", cipher="AES-256-CBC"):
+                            server_proto, cipher):
     """
     """
 
@@ -170,7 +168,7 @@ def fill_base_client_values(key_dir, client_name, server_port_out, server_aliase
 
 
 def fill_client_values(dns_address, key_dir, client_name, server_port_out, server_aliases,
-                       server_proto="tcp", cipher="AES-256-CBC"):
+                       server_proto, cipher):
     """
 
     Args:
@@ -218,8 +216,8 @@ def fill_client_values(dns_address, key_dir, client_name, server_port_out, serve
 
 
 #%% File-writing functions
-def write_server_config(output_dir, key_dir, server_address, server_port_in, config_path="/etc/openvpn",
-                        server_proto="tcp", server_mask="255.255.255.0", cipher="AES-256-CBC",):
+def write_server_config(output_dir, key_dir, server_address, server_port_in, config_path,
+                        server_proto, server_mask, cipher):
     # TODO: should server_mask be called net_mask?
     """
     """
@@ -279,11 +277,11 @@ def write_server_ipp_file(client_file, dir_name, output_dir, key_dir, vpn_name, 
     _log_clients(vpn_name, msg_no_key, clients_addr_but_not_existing)
 
 
-def write_firewall_config(output_dir, server_network, server_port_in, server_iface, server_proto="tcp"):
+def write_firewall_config(output_dir, server_network, server_port_in, server_proto):
     """
     """
     # Fill out the specific values for the firewall.
-    firewall_contents = fill_firewall_values(server_network, server_port_in, server_iface, server_proto)
+    firewall_contents = fill_firewall_values(server_network, server_port_in, server_proto)
 
     # Write config to file
     verify_or_make_dir(output_dir)
@@ -292,8 +290,8 @@ def write_firewall_config(output_dir, server_network, server_port_in, server_ifa
         my_file.write(firewall_contents)
 
 
-def write_client_profiles(output_dir, vpn_name, dns_address, key_dir, client_name, server_port_out, server_aliases,
-                          server_proto="tcp", cipher="AES-256-CBC"):
+def write_client_profiles(output_dir, vpn_name, dns_address, key_dir, client_name, server_port_out,
+                          server_aliases, server_proto, cipher):
 
     # Fill-in the values for this client
     client_l, client_lr, client_w, client_wr = fill_client_values(dns_address, key_dir, client_name, server_port_out,
@@ -326,8 +324,8 @@ def get_all_clients_by_keyfiles(key_dir):
     return existing_clients
 
 
-def write_all_client_profiles(output_dir, vpn_name, dns_address, key_dir, server_port_out, server_aliases,
-                              server_proto="tcp", cipher="AES-256-CBC"):
+def write_all_client_profiles(output_dir, vpn_name, dns_address, key_dir, server_port_out,
+                              server_aliases, server_proto, cipher):
     existing_clients = get_all_clients_by_keyfiles(key_dir)
     for client_name in existing_clients:
         write_client_profiles(output_dir, vpn_name, dns_address, key_dir, client_name,
@@ -355,7 +353,7 @@ def write_complete_config(cfg):
     write_firewall_config(output_dir=cfg['OUTPUT_DIR'],
                           server_network=cfg['NET_ADDRESS'],
                           server_port_in=cfg['SERVER_PORT_IN'],
-                          server_iface=cfg['IFACE'],
+                          #server_iface=cfg['IFACE'],
                           server_proto=cfg['SERVER_PROTO'])
 
     write_all_client_profiles(output_dir=cfg['OUTPUT_DIR'],

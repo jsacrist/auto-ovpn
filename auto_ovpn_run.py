@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 import glob
 from distutils.dir_util import copy_tree
-
 from auto_ovpn_profiles import parse_options_from_yaml, write_complete_config, get_all_clients_by_keyfiles
 
 #%%

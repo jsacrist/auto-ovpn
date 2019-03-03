@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import os
 import glob
@@ -16,6 +15,24 @@ DEFAULT_VALUES = dict(CLIENT_LIST=None,
                       CIPHER='AES-256-CBC',
                       CONFIG_PATH='/etc/openvpn',
                       SLEEP_TIME=10)
+
+
+#%% "Internal" functions
+def _get_ip_prefix(server_network, net_mask):
+    ip_prefix = ''.join([f"{x}." for (x, y) in zip(server_network.split('.'), net_mask.split('.')) if y != "0"])
+    num_octets = len(ip_prefix.split('.'))
+    ip_prefix = ip_prefix if num_octets == 4 else f"{ip_prefix}0."
+    return ip_prefix
+
+
+def _log_clients(vpn_name, message, client_list):
+    print(f"[{vpn_name}] {message}:")
+    print(f'\t{", ".join(client_list)}\n')
+
+
+def _verify_or_make_dir(some_dir):
+    if not os.path.exists(some_dir):
+        os.makedirs(some_dir)
 
 
 #%% Parser Functions
@@ -48,11 +65,6 @@ def parse_client_yaml_file(yaml_file, dir_name):
     with open(found_file, 'r') as myfile:
         clients = yaml.load(myfile.read())
     return clients
-
-
-def verify_or_make_dir(some_dir):
-    if not os.path.exists(some_dir):
-        os.makedirs(some_dir)
 
 
 #%% Template-filling functions
@@ -226,21 +238,9 @@ def write_server_config(output_dir, key_dir, server_network, server_port_in, con
                                               config_path, server_proto, server_mask, cipher)
 
     # Write config to file
-    verify_or_make_dir(output_dir)
+    _verify_or_make_dir(output_dir)
     with open(f"{output_dir}/server.conf", "w") as my_file:
         my_file.write(config_file_contents)
-
-
-def _get_ip_prefix(server_network, net_mask):
-    ip_prefix = ''.join([f"{x}." for (x, y) in zip(server_network.split('.'), net_mask.split('.')) if y != "0"])
-    num_octets = len(ip_prefix.split('.'))
-    ip_prefix = ip_prefix if num_octets == 4 else f"{ip_prefix}0."
-    return ip_prefix
-
-
-def _log_clients(vpn_name, message, client_list):
-    print(f"[{vpn_name}] {message}:")
-    print(f'\t{", ".join(client_list)}\n')
 
 
 def write_server_ipp_file(client_file, dir_name, output_dir, key_dir, vpn_name, server_network, net_mask):
@@ -284,7 +284,7 @@ def write_firewall_config(output_dir, server_network, server_port_in, server_pro
     firewall_contents = fill_firewall_values(server_network, server_port_in, server_proto)
 
     # Write config to file
-    verify_or_make_dir(output_dir)
+    _verify_or_make_dir(output_dir)
 
     with open(f"{output_dir}/firewall.sh", "w") as my_file:
         my_file.write(firewall_contents)
@@ -299,8 +299,8 @@ def write_client_profiles(output_dir, vpn_name, dns_address, key_dir, client_nam
 
     dir_linux = f"{output_dir}/clients/{client_name}/linux/"
     dir_windows = f"{output_dir}/clients/{client_name}/windows/"
-    verify_or_make_dir(dir_linux)
-    verify_or_make_dir(dir_windows)
+    _verify_or_make_dir(dir_linux)
+    _verify_or_make_dir(dir_windows)
 
     # Save the linux profiles
     with open(f"{dir_linux}/{vpn_name}.conf", "w", newline='\n') as myfile:

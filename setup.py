@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 import setuptools
+import versioneer
 
 
 with open("README.md", "r") as myfile:
@@ -9,7 +9,8 @@ with open("README.md", "r") as myfile:
 
 setuptools.setup(
     name="auto_ovpn_profiles",
-    version="0.0.1",
+    version=versioneer.get_version(),
+    cmdclass=versioneer.get_cmdclass(),
     author="Jorge Sacristan",
     author_email="j.sacris@gmail.com",
     description="A small example package",
@@ -20,4 +21,5 @@ setuptools.setup(
     classifiers=["Programming Language :: Python :: 3",
                  "License :: GPLv3 License",
                  "Operating System :: OS Independent", ],
+    # install_requires=[numpy>=1.14.0]
 )

@@ -19,15 +19,15 @@ DEFAULT_VALUES = dict(CLIENT_LIST=None,
 
 #%% "Internal" functions
 def _get_ip_prefix(server_network, net_mask):
-    ip_prefix = ''.join([f"{x}." for (x, y) in zip(server_network.split('.'), net_mask.split('.')) if y != "0"])
+    ip_prefix = ''.join(["{}.".format(x) for (x, y) in zip(server_network.split('.'), net_mask.split('.')) if y != "0"])
     num_octets = len(ip_prefix.split('.'))
-    ip_prefix = ip_prefix if num_octets == 4 else f"{ip_prefix}0."
+    ip_prefix = ip_prefix if num_octets == 4 else "{}0.".format(ip_prefix)
     return ip_prefix
 
 
 def _log_clients(vpn_name, message, client_list):
-    print(f"[{vpn_name}] {message}:")
-    print(f'\t{", ".join(client_list)}\n')
+    print("[{}] {}:".format(vpn_name, message))
+    print('\t{}\n'.format(", ".join(client_list)))
 
 
 def _verify_or_make_dir(some_dir):
@@ -42,7 +42,7 @@ def parse_options_from_yaml(yaml_file):
 
     # Validate that the required variables were provided
     for x in REQUIRED_VARS:
-        assert x in cfg, f"The provided YAML file does not contain the required value for[{x}]"
+        assert x in cfg, "The provided YAML file does not contain the required value for[{}]".format(x)
 
     # Use default values for the variables that no value was provided, if one was provided use that instead.
     for x in DEFAULT_VALUES:
@@ -57,10 +57,10 @@ def parse_options_from_yaml(yaml_file):
 def parse_client_yaml_file(yaml_file, dir_name):
     if os.path.exists(yaml_file):
         found_file = yaml_file
-    elif os.path.exists(f"{dir_name}/{yaml_file}"):
-        found_file = f"{dir_name}/{yaml_file}"
+    elif os.path.exists("{}/{}".format(dir_name, yaml_file)):
+        found_file = "{}/{}".format(dir_name, yaml_file)
     else:
-        raise Exception(f"The specified client file [{yaml_file}] was not found")
+        raise Exception("The specified client file [{}] was not found".format(yaml_file))
 
     with open(found_file, 'r') as myfile:
         clients = yaml.load(myfile.read())
@@ -72,67 +72,69 @@ def fill_server_values(key_dir, server_network, server_port_in, config_path,
                        server_proto, server_mask, cipher):
 
     # Open the files containing keys, certificates, etc.
-    with open(f"{key_dir}/ca.crt", 'r') as myfile:
+    with open("{}/ca.crt".format(key_dir), 'r') as myfile:
         contents_ca_crt = myfile.read()
 
-    with open(f"{key_dir}/server.crt", 'r') as myfile:
+    with open("{}/server.crt".format(key_dir), 'r') as myfile:
         contents_server_crt = myfile.read()
 
-    with open(f"{key_dir}/server.key", 'r') as myfile:
+    with open("{}/server.key".format(key_dir), 'r') as myfile:
         contents_server_key = myfile.read()
 
-    with open(f"{key_dir}/dh2048.pem", 'r') as myfile:
+    with open("{}/dh2048.pem".format(key_dir), 'r') as myfile:
         contents_dh2048 = myfile.read()
 
-    with open(f"{key_dir}/ta.key", 'r') as myfile:
+    with open("{}/ta.key".format(key_dir), 'r') as myfile:
         contents_ta_key = myfile.read()
 
     # Fill-in the 'template' with the contents of keys, certificates, etc...
-    server_file_contents = \
-        f"# {server_network} will be a new VPN, must not conflict with existing nets\n" + \
-        f"server {server_network} {server_mask}\n" + \
-        f"cipher {cipher}\n" + \
-        f"proto {server_proto}\n" + \
-        f"port {server_port_in}\n" + \
-        "dev tun\n" + \
-        "mute 10\n" + \
-        f"ifconfig-pool-persist {config_path}/ipp.txt 0\n\n" + \
-        "persist-key\n" + \
-        "persist-tun\n" + \
-        "keepalive 10 60\n" + \
-        "topology subnet\n" + \
-        "comp-lzo adaptive\n" + \
-        "client-to-client\n" + \
-        "script-security 2\n" + \
-        "daemon\n" + \
-        "verb 5\n\n" + \
-        f"<ca>\n{contents_ca_crt}</ca>\n\n" + \
-        f"<cert>\n{contents_server_crt}</cert>\n\n" + \
-        f"<key>\n{contents_server_key}</key>\n\n" + \
-        f"<dh>\n{contents_dh2048}</dh>\n\n" + \
-        "key-direction 0\n" + \
-        f"<tls-auth>\n{contents_ta_key}</tls-auth>\n\n"
+    server_file_contents = (
+            "# {} will be a new VPN, must not conflict with existing nets\n".format(server_network) +
+            "server {} {}\n".format(server_network, server_mask) +
+            "cipher {}\n".format(cipher) +
+            "proto {}\n".format(server_proto) +
+            "port {}\n".format(server_port_in) +
+            "dev tun\n" +
+            "mute 10\n" +
+            "ifconfig-pool-persist {}/ipp.txt 0\n\n".format(config_path) +
+            "persist-key\n" +
+            "persist-tun\n" +
+            "keepalive 10 60\n" +
+            "topology subnet\n" +
+            "comp-lzo adaptive\n" +
+            "client-to-client\n" +
+            "script-security 2\n" +
+            "daemon\n" +
+            "verb 5\n\n" +
+            "<ca>\n{}</ca>\n\n".format(contents_ca_crt) +
+            "<cert>\n{}</cert>\n\n".format(contents_server_crt) +
+            "<key>\n{}</key>\n\n".format(contents_server_key) +
+            "<dh>\n{}</dh>\n\n".format(contents_dh2048) +
+            "key-direction 0\n" +
+            "<tls-auth>\n{}</tls-auth>\n\n".format(contents_ta_key)
+    )
 
     return server_file_contents
 
 
 def fill_firewall_values(server_network, server_port_in, server_proto):
-    firewall_file_contents = \
-        "################################################################################\n" +\
-        "## FIREWALL START\n" +\
-        "# NOTE: The following iptables lines should be placed either:\n" +\
-        "#   a) In the startup script of a dd-wrt router.\n" +\
-        "# Or\n" +\
-        "#   b) in the /etc/rc.local file of a Debian-based distro.\n" +\
-        "################################################################################\n#\n" +\
-        "iptables -A OUTPUT -o tun+ -j ACCEPT\n\n" +\
-        f"# Accept data coming from {server_proto} port {server_port_in}\n" +\
-        f"iptables --insert INPUT 1 --protocol {server_proto} --dport {server_port_in} --jump ACCEPT\n\n" +\
-        "# Re-route traffic from VPN clients to the internet\n" +\
-        f"iptables -I FORWARD 1 --source {server_network}/24 -j ACCEPT\n" +\
-        f"iptables -t nat -A POSTROUTING -s {server_network}/24 ! -d {server_network}/24 -j MASQUERADE\n\n" +\
-        "## FIREWALL END\n" +\
+    firewall_file_contents = (
+        "################################################################################\n" +
+        "## FIREWALL START\n" +
+        "# NOTE: The following iptables lines should be placed either:\n" +
+        "#   a) In the startup script of a dd-wrt router.\n" +
+        "# Or\n" +
+        "#   b) in the /etc/rc.local file of a Debian-based distro.\n" +
+        "################################################################################\n#\n" +
+        "iptables -A OUTPUT -o tun+ -j ACCEPT\n\n" +
+        "# Accept data coming from {} port {}\n".format(server_proto, server_port_in) +
+        "iptables --insert INPUT 1 --protocol {} --dport {} --jump ACCEPT\n\n".format(server_proto, server_port_in) +
+        "# Re-route traffic from VPN clients to the internet\n" +
+        "iptables -I FORWARD 1 --source {}/24 -j ACCEPT\n".format(server_network) +
+        "iptables -t nat -A POSTROUTING -s {}/24 ! -d {}/24 -j MASQUERADE\n\n".format(server_network, server_network) +
+        "## FIREWALL END\n" +
         "################################################################################\n"
+    )
     return firewall_file_contents
 
 
@@ -142,39 +144,40 @@ def fill_base_client_values(key_dir, client_name, server_port_out, server_aliase
     """
 
     # Open the files containing keys, certificates, etc.
-    with open(f"{key_dir}/ca.crt", 'r') as myfile:
+    with open("{}/ca.crt".format(key_dir), 'r') as myfile:
         contents_ca_crt = myfile.read()
 
-    with open(f"{key_dir}/{client_name}.crt", 'r') as myfile:
+    with open("{}/{}.crt".format(key_dir, client_name), 'r') as myfile:
         contents_client_crt = myfile.read()
 
-    with open(f"{key_dir}/{client_name}.key", 'r') as myfile:
+    with open("{}/{}.key".format(key_dir, client_name), 'r') as myfile:
         contents_client_key = myfile.read()
 
-    with open(f"{key_dir}/ta.key", 'r') as myfile:
+    with open("{}/ta.key".format(key_dir), 'r') as myfile:
         contents_ta_key = myfile.read()
 
-    aliases_str = f"remote {server_aliases}"
+    aliases_str = "remote {}".format(server_aliases)
     if isinstance(server_aliases, list) or isinstance(server_aliases, tuple):
-        aliases_str = '\n'.join([f"remote {x}" for x in server_aliases])
+        aliases_str = '\n'.join(["remote {}".format(x) for x in server_aliases])
 
-    client_file_contents = \
-        f"{aliases_str}\n" +\
-        "client\n" +\
-        f"cipher {cipher}\n" + \
-        f"proto {server_proto}\n" + \
-        f"port {server_port_out}\n" + \
-        "dev tun\n" + \
-        "float\n" + \
-        "verb 5\n" + \
-        "comp-lzo\n" + \
-        "remote-cert-tls server\n" + \
-        "auth-nocache\n\n" + \
-        f"<ca>\n{contents_ca_crt}</ca>\n\n" + \
-        f"<cert>\n{contents_client_crt}</cert>\n\n" + \
-        f"<key>\n{contents_client_key}</key>\n\n" + \
-        "key-direction 1\n" + \
-        f"<tls-auth>\n{contents_ta_key}</tls-auth>\n\n"
+    client_file_contents = (
+            "{}\n".format(aliases_str) +
+            "client\n" +
+            "cipher {}\n".format(cipher) +
+            "proto {}\n".format(server_proto) +
+            "port {}\n".format(server_port_out) +
+            "dev tun\n" +
+            "float\n" +
+            "verb 5\n" +
+            "comp-lzo\n" +
+            "remote-cert-tls server\n" +
+            "auth-nocache\n\n" +
+            "<ca>\n{}</ca>\n\n".format(contents_ca_crt) +
+            "<cert>\n{}</cert>\n\n".format(contents_client_crt) +
+            "<key>\n{}</key>\n\n".format(contents_client_key) +
+            "key-direction 1\n" +
+            "<tls-auth>\n{}</tls-auth>\n\n".format(contents_ta_key)
+        )
 
     return client_file_contents
 
@@ -203,19 +206,21 @@ def fill_client_values(dns_address, key_dir, client_name, server_port_out, serve
     # Define some strings needed for windows and linux profiles
     redir_string = "redirect-gateway def1 bypass-dhcp\n"
     resolv_file = "/etc/openvpn/update-resolv-conf"
-    resolv_line = f"{resolv_file} foreign_option_1='dhcp-option DNS {dns_address}'"
-    dns_line = f"dhcp-option DNS {dns_address}\n"
+    resolv_line = "{} foreign_option_1='dhcp-option DNS {}'".format(resolv_file, dns_address)
+    dns_line = "dhcp-option DNS {}\n".format(dns_address)
 
-    file_header = f"# Client configuration for [{client_name}]\n"
+    file_header = "# Client configuration for [{}]\n".format(client_name)
 
     # Put together the strings for linux profiles
     client_linux = file_header + "# LINUX profile\n" + client_std
-    client_linux_redir = (file_header + "# LINUX profile (redirect)\n" + client_std +
-                          redir_string +
-                          "script-security 2\n" +
-                          f"up \"{resolv_line}\"\n" +
-                          f"down \"{resolv_line}\"\n" +
-                          dns_line)
+    client_linux_redir = (
+            file_header + "# LINUX profile (redirect)\n" + client_std +
+            redir_string +
+            "script-security 2\n" +
+            "up \"{}\"\n".format(resolv_line) +
+            "down \"{}\"\n".format(resolv_line) +
+            dns_line
+    )
 
     # Put together the strings for windows profiles
     client_windows = file_header + "# WINDOWS/ANDROID profile\n" + client_std
@@ -239,13 +244,13 @@ def write_server_config(output_dir, key_dir, server_network, server_port_in, con
 
     # Write config to file
     _verify_or_make_dir(output_dir)
-    with open(f"{output_dir}/server.conf", "w") as my_file:
+    with open("{}/server.conf".format(output_dir), "w") as my_file:
         my_file.write(config_file_contents)
 
 
 def write_server_ipp_file(client_file, dir_name, output_dir, key_dir, vpn_name, server_network, net_mask):
     if client_file is None:
-        print(f"No client-file provided for {vpn_name}, won't write ipp.txt...")
+        print("No client-file provided for {}, won't write ipp.txt...".format(vpn_name))
         return
 
     client_ip_dict = parse_client_yaml_file(client_file, dir_name)
@@ -256,24 +261,24 @@ def write_server_ipp_file(client_file, dir_name, output_dir, key_dir, vpn_name, 
     clients_addr_but_not_existing = {x: client_ip_dict[x] for x in client_ip_dict if x not in clients_existing}
 
     ip_prefix = _get_ip_prefix(server_network, net_mask)
-    static_ips = f"## ipp.txt for {vpn_name} ({server_network})\n## certificate_client_name,ip_address\n"
+    static_ips = "## ipp.txt for {} ({})\n## certificate_client_name,ip_address\n".format(vpn_name, server_network)
 
     for a_client in clients_inner_join:
         ip_ending = clients_inner_join[a_client]
-        static_ips += f"{a_client},{ip_prefix}{ip_ending}\n"
+        static_ips += "{},{}{}\n".format(a_client, ip_prefix, ip_ending)
 
-    with open(f"{output_dir}/ipp.txt", "w") as my_file:
+    with open("{}/ipp.txt".format(output_dir), "w") as my_file:
         my_file.write(static_ips)
 
     msg_written = "The following clients had their profiles written:"
     _log_clients(vpn_name, msg_written, clients_inner_join)
 
     msg_not_in_client_file = ("The following clients have a key-pair, but were " +
-                              f"not written to ipp.txt because they were not found in {client_file}:")
+                              "not written to ipp.txt because they were not found in {}:".format(client_file))
     _log_clients(vpn_name, msg_not_in_client_file, clients_existing_but_no_addr)
 
-    msg_no_key = (f"The following clients were found in {client_file}, but had no " +
-                  f"key-pair and were not written")
+    msg_no_key = ("The following clients were found in {}, but had no ".format(client_file) +
+                  "key-pair and were not written")
     _log_clients(vpn_name, msg_no_key, clients_addr_but_not_existing)
 
 
@@ -286,7 +291,7 @@ def write_firewall_config(output_dir, server_network, server_port_in, server_pro
     # Write config to file
     _verify_or_make_dir(output_dir)
 
-    with open(f"{output_dir}/firewall.sh", "w") as my_file:
+    with open("{}/firewall.sh".format(output_dir), "w") as my_file:
         my_file.write(firewall_contents)
 
 
@@ -297,29 +302,29 @@ def write_client_profiles(output_dir, vpn_name, dns_address, key_dir, client_nam
     client_l, client_lr, client_w, client_wr = fill_client_values(dns_address, key_dir, client_name, server_port_out,
                                                                   server_aliases, server_proto, cipher)
 
-    dir_linux = f"{output_dir}/clients/{client_name}/linux/"
-    dir_windows = f"{output_dir}/clients/{client_name}/windows/"
+    dir_linux = "{}/clients/{}/linux/".format(output_dir, client_name)
+    dir_windows = "{}/clients/{}/windows/".format(output_dir, client_name)
     _verify_or_make_dir(dir_linux)
     _verify_or_make_dir(dir_windows)
 
     # Save the linux profiles
-    with open(f"{dir_linux}/{vpn_name}.conf", "w", newline='\n') as myfile:
+    with open("{}/{}.conf".format(dir_linux, vpn_name), "w", newline='\n') as myfile:
         myfile.write(client_l)
 
-    with open(f"{dir_linux}/{vpn_name}-redirect.conf", "w", newline='\n') as myfile:
+    with open("{}/{}-redirect.conf".format(dir_linux, vpn_name), "w", newline='\n') as myfile:
         myfile.write(client_lr)
 
     # Save the windows profiles
-    with open(f"{dir_windows}/{vpn_name}.ovpn", "w", newline='\r\n') as myfile:
+    with open("{}/{}.ovpn".format(dir_linux, vpn_name), "w", newline='\r\n') as myfile:
         myfile.write(client_w)
 
-    with open(f"{dir_windows}/{vpn_name}-redirect.ovpn", "w", newline='\r\n') as myfile:
+    with open("{}/{}-redirect.ovpn".format(dir_linux, vpn_name), "w", newline='\r\n') as myfile:
         myfile.write(client_wr)
 
 
 def get_all_clients_by_keyfiles(key_dir):
     ignore_files = ['ta.key', 'ca.key', 'server.key']
-    key_files = glob.glob(f"{key_dir}/*.key")
+    key_files = glob.glob("{}/*.key".format(key_dir))
     existing_clients = [y.split('.')[0] for y in [os.path.basename(x) for x in key_files] if y not in ignore_files]
     return existing_clients
 

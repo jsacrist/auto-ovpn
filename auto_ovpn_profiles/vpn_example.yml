@@ -2,7 +2,7 @@
 VPN_NAME: yourvpnname
 SERVER_ALIASES:
   - your.domain.goes.here.com
-
+  - your.ip.can.also.go.here
 
 NET_ADDRESS: 10.0.0.0
 NET_MASK: 255.255.255.0
@@ -13,7 +13,7 @@ KEY_DIR: /path/to/your/certificate_authority/keys # The directory that contains 
 OUTPUT_DIR: /path/where/openvpn_profiles/should/be/saved/
 
 # Optional variables, if they are not provided, a default value will be used.
-CLIENT_LIST: vpn_clients.yml
+CLIENT_LIST: vpn_clients.yml  # A yaml file with containing key-value pairs corresponding to host-ip values respectively
 SERVER_PROTO: tcp
 SERVER_PORT_OUT: 1194
 SERVER_PORT_IN=: 1194

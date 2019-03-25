@@ -2,6 +2,7 @@
 import os
 import glob
 import yaml
+from ._version import get_versions
 
 
 #%% "Global" variables

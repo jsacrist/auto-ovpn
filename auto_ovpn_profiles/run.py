@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import argparse
 import sys
+import os
 import glob
 from distutils.dir_util import copy_tree
 from auto_ovpn_profiles import parse_options_from_yaml, write_complete_config, get_all_clients_by_keyfiles
@@ -39,15 +40,16 @@ if __name__ == "__main__":
 
     # If the `example` flag was passed, print out the example yaml and quit
     if args.example:
-        with open("vpn_example.yml", 'r') as myfile:
+        pkg_dir = os.path.dirname(__file__)
+        with open("{}/vpn_example.yml".format(pkg_dir), 'r') as myfile:
             example_yaml = myfile.read()
             print(example_yaml)
-        sys.exit(0)
+        exit()
 
     # If no files were given, display the help text and quit
     if args.file is None:
         parser.print_help()
-        sys.exit(0)
+        exit()
 
     # If we make it to this point, at least a file was given.
     client_dirs = []

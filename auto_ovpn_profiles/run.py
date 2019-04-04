@@ -9,30 +9,30 @@ from auto_ovpn_profiles import parse_options_from_yaml, write_complete_config, g
 
 
 def parse_cl_args(arguments):
-    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter)
+    a_parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter)
 
-    parser.add_argument(
+    a_parser.add_argument(
         "-e", "--example",
         action='store_true',
         help="Print out an example of a configuration yaml file."
     )
 
-    parser.add_argument(
+    a_parser.add_argument(
         "-F", "--file",
         type=str,
         action='append',
         help="Path to a yaml file containing the configuration values."
     )
 
-    parser.add_argument(
+    a_parser.add_argument(
         "-o", "--output-dir",
         type=str,
         help="(optional) Path to an output directory where all the vpn profiles should be placed."
     )
 
-    args = parser.parse_args(arguments)
+    some_args = a_parser.parse_args(arguments)
     # print(args)
-    return args, parser
+    return some_args, a_parser
 
 
 if __name__ == "__main__":

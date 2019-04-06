@@ -275,7 +275,7 @@ def write_server_ipp_file(client_file, dir_name, output_dir, key_dir, vpn_name, 
     _log_clients(vpn_name, msg_written, clients_inner_join)
 
     msg_not_in_client_file = ("The following clients have a key-pair, but were " +
-                              "not written to ipp.txt because they were not found in {}:".format(client_file))
+                              "not written to ipp.txt because they were not found in {}".format(client_file))
     _log_clients(vpn_name, msg_not_in_client_file, clients_existing_but_no_addr)
 
     msg_no_key = ("The following clients were found in {}, but had no ".format(client_file) +

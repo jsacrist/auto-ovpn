@@ -52,8 +52,8 @@ if __name__ == "__main__":
 
     # If we make it to this point, at least a file was given.
     client_dirs = []
-    for cfg in [parse_options_from_yaml(x) for x in args.file]:
-        write_complete_config(cfg)
+    for cfg in [parse_options_from_yaml(x) for x in set(args.file)]:
+        write_complete_config(cfg)  # Process each config file
         existing_clients = get_all_clients_by_keyfiles(cfg['KEY_DIR'])
         client_dirs.append(glob.glob("{}/clients/".format(cfg['OUTPUT_DIR']))[0])
 

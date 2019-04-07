@@ -28,10 +28,10 @@ def _get_ip_prefix(server_network, net_mask):
     return ip_prefix
 
 
-def _log_clients(vpn_name, message, client_list):
+def _log_clients(vpn_name, message, client_list, num_tabs=2):
     print("[{}] {}:".format(vpn_name, message))
-    for line in _list_to_multiline_str(client_list, 100).split('\n'):
-        print("\t\t" + line)
+    for line in _list_to_multiline_str(sorted(client_list), 100).split('\n'):
+        print("\t" * num_tabs + line)
 
 
 def _list_to_multiline_str(a_list, num_char=80):
@@ -254,7 +254,7 @@ def fill_client_values(dns_address, key_dir, client_name, server_port_out,
 
 
 #%% File-writing functions
-def write_server_config(output_dir, key_dir, server_network, server_port_in, config_path,
+def write_server_config(vpn_name, output_dir, key_dir, server_network, server_port_in, config_path,
                         server_proto, server_mask, cipher):
     # TODO: should server_mask be called net_mask?
     """
@@ -267,11 +267,12 @@ def write_server_config(output_dir, key_dir, server_network, server_port_in, con
     _verify_or_make_dir(output_dir)
     with open("{}/server.conf".format(output_dir), "w") as my_file:
         my_file.write(config_file_contents)
+    print("[{}] OpenVPN configuration file written to: {}/server.conf".format(vpn_name, output_dir))
 
 
-def write_server_ipp_file(client_file, dir_name, output_dir, key_dir, vpn_name, server_network, net_mask):
+def write_server_ipp_file(vpn_name, client_file, dir_name, output_dir, key_dir, server_network, net_mask):
     if client_file is None:
-        print("No client-file provided for {}, won't write ipp.txt...".format(vpn_name))
+        print("[{}] No value for 'CLIENT_LIST' was specified.  Won't write ipp.txt...".format(vpn_name))
         return
 
     client_ip_dict = parse_client_yaml_file(client_file, dir_name)
@@ -291,21 +292,24 @@ def write_server_ipp_file(client_file, dir_name, output_dir, key_dir, vpn_name, 
     with open("{}/ipp.txt".format(output_dir), "w") as my_file:
         my_file.write(static_ips)
 
-    if len(clients_inner_join) > 0:
-        msg_written = "Profiles written"
-        _log_clients(vpn_name, msg_written, clients_inner_join)
+    # Log everything that was done
+    # if len(clients_inner_join) > 0:
+    #     msg_written = "Profiles written"
+    #     _log_clients(vpn_name, msg_written, clients_inner_join)
 
     if len(clients_existing_but_no_addr) > 0:
-        msg_not_in_client_file = ("Profiles written, but no entry added to ipp.txt " +
+        # msg_not_in_client_file = ("Profiles written, but no entry added to ipp.txt " +
+        #                           "(no matching entry in {})".format(client_file))
+        msg_not_in_client_file = ("Profiles NOT added to ipp.txt " +
                                   "(no matching entry in {})".format(client_file))
-        _log_clients(vpn_name, msg_not_in_client_file, clients_existing_but_no_addr)
+        _log_clients(vpn_name, msg_not_in_client_file, clients_existing_but_no_addr, 3)
 
     if len(clients_addr_but_not_existing) > 0:
         msg_no_key = "Profiles NOT written (entries found in {}, but no key-pair found)".format(client_file)
-        _log_clients(vpn_name, msg_no_key, clients_addr_but_not_existing)
+        _log_clients(vpn_name, msg_no_key, clients_addr_but_not_existing, 3)
 
 
-def write_firewall_config(output_dir, server_network, server_port_in, server_proto):
+def write_firewall_config(vpn_name, output_dir, server_network, server_port_in, server_proto):
     """
     """
     # Fill out the specific values for the firewall.
@@ -316,6 +320,7 @@ def write_firewall_config(output_dir, server_network, server_port_in, server_pro
 
     with open("{}/firewall.sh".format(output_dir), "w") as my_file:
         my_file.write(firewall_contents)
+    print("[{}] Firewall rules written to: {}/firewall.sh".format(vpn_name, output_dir))
 
 
 def write_client_profiles(output_dir, vpn_name, dns_address, key_dir, client_name, server_port_out,
@@ -358,10 +363,12 @@ def write_all_client_profiles(output_dir, vpn_name, dns_address, key_dir, server
     for client_name in existing_clients:
         write_client_profiles(output_dir, vpn_name, dns_address, key_dir, client_name,
                               server_port_out, server_aliases, server_proto, cipher)
+    _log_clients(vpn_name, "Profiles written to {}".format(output_dir), existing_clients)
 
 
 def write_complete_config(cfg):
     write_server_config(
+        vpn_name=cfg['VPN_NAME'],
         output_dir=cfg['OUTPUT_DIR'],
         key_dir=cfg['KEY_DIR'],
         server_network=cfg['NET_ADDRESS'],
@@ -372,17 +379,8 @@ def write_complete_config(cfg):
         cipher=cfg['CIPHER']
     )
 
-    write_server_ipp_file(
-        client_file=cfg['CLIENT_LIST'],
-        dir_name=cfg['DIR_NAME'],
-        output_dir=cfg['OUTPUT_DIR'],
-        key_dir=cfg['KEY_DIR'],
-        vpn_name=cfg['VPN_NAME'],
-        server_network=cfg['NET_ADDRESS'],
-        net_mask=cfg['NET_MASK']
-    )
-
     write_firewall_config(
+        vpn_name=cfg['VPN_NAME'],
         output_dir=cfg['OUTPUT_DIR'],
         server_network=cfg['NET_ADDRESS'],
         server_port_in=cfg['SERVER_PORT_IN'],
@@ -399,3 +397,15 @@ def write_complete_config(cfg):
         server_proto=cfg['SERVER_PROTO'],
         cipher=cfg['CIPHER']
     )
+
+    write_server_ipp_file(
+        vpn_name=cfg['VPN_NAME'],
+        client_file=cfg['CLIENT_LIST'],
+        dir_name=cfg['DIR_NAME'],
+        output_dir=cfg['OUTPUT_DIR'],
+        key_dir=cfg['KEY_DIR'],
+        server_network=cfg['NET_ADDRESS'],
+        net_mask=cfg['NET_MASK']
+    )
+
+    print("")

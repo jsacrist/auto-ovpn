@@ -80,7 +80,7 @@ def parse_client_yaml_file(yaml_file, dir_name):
     if os.path.exists(yaml_file):
         found_file = os.path.abspath(yaml_file)
     elif os.path.exists("{}/{}".format(dir_name, yaml_file)):
-        found_file =  os.path.abspath("{}/{}".format(dir_name, yaml_file))
+        found_file = os.path.abspath("{}/{}".format(dir_name, yaml_file))
     else:
         raise Exception("The specified client file [{}] was not found".format(yaml_file))
 
@@ -253,7 +253,42 @@ def fill_client_values(dns_address, key_dir, client_name, server_port_out,
     return client_linux, client_linux_redir, client_windows, client_windows_redir
 
 
+#%%
+def get_all_clients_by_keyfiles(key_dir):
+    ignore_files = ['ta.key', 'ca.key', 'server.key']
+    key_files = glob.glob("{}/*.key".format(key_dir))
+    existing_clients = [y.split('.')[0] for y in [os.path.basename(x) for x in key_files] if y not in ignore_files]
+    return existing_clients
+
+
 #%% File-writing functions
+def write_single_client_profiles(output_dir, vpn_name, dns_address, key_dir, client_name, server_port_out,
+                                 server_aliases, server_proto, cipher):
+
+    # Fill-in the values for this client
+    client_l, client_lr, client_w, client_wr = fill_client_values(dns_address, key_dir, client_name, server_port_out,
+                                                                  server_aliases, server_proto, cipher)
+
+    dir_linux = "{}/clients/{}/linux/".format(output_dir, client_name)
+    dir_windows = "{}/clients/{}/windows/".format(output_dir, client_name)
+    _verify_or_make_dir(dir_linux)
+    _verify_or_make_dir(dir_windows)
+
+    # Save the linux profiles
+    with open("{}/{}.conf".format(dir_linux, vpn_name), "w", newline='\n') as myfile:
+        myfile.write(client_l)
+
+    with open("{}/{}-redirect.conf".format(dir_linux, vpn_name), "w", newline='\n') as myfile:
+        myfile.write(client_lr)
+
+    # Save the windows profiles
+    with open("{}/{}.ovpn".format(dir_linux, vpn_name), "w", newline='\r\n') as myfile:
+        myfile.write(client_w)
+
+    with open("{}/{}-redirect.ovpn".format(dir_linux, vpn_name), "w", newline='\r\n') as myfile:
+        myfile.write(client_wr)
+
+
 def write_server_config(vpn_name, output_dir, key_dir, server_network, server_port_in, config_path,
                         server_proto, server_mask, cipher):
     # TODO: should server_mask be called net_mask?
@@ -270,6 +305,31 @@ def write_server_config(vpn_name, output_dir, key_dir, server_network, server_po
     with open(server_cfg_full_path, "w") as my_file:
         my_file.write(config_file_contents)
     print("[{}] OpenVPN configuration file written to: {}".format(vpn_name, server_cfg_full_path))
+
+
+def write_firewall_config(vpn_name, output_dir, server_network, server_port_in, server_proto):
+    """
+    """
+    # Fill out the specific values for the firewall.
+    firewall_contents = fill_firewall_values(server_network, server_port_in, server_proto)
+
+    # Write config to file
+    _verify_or_make_dir(output_dir)
+    firewall_full_path = os.path.abspath("{}/firewall.sh".format(output_dir))
+
+    with open(firewall_full_path, "w") as my_file:
+        my_file.write(firewall_contents)
+    print("[{}] Firewall rules written to: {}".format(vpn_name, firewall_full_path))
+
+
+def write_all_client_profiles(output_dir, vpn_name, dns_address, key_dir, server_port_out,
+                              server_aliases, server_proto, cipher):
+    existing_clients = get_all_clients_by_keyfiles(key_dir)
+    out_dir_full_path = os.path.abspath(output_dir)
+    for client_name in existing_clients:
+        write_single_client_profiles(out_dir_full_path, vpn_name, dns_address, key_dir, client_name,
+                                     server_port_out, server_aliases, server_proto, cipher)
+    _log_clients(vpn_name, "Profiles written to {}".format(out_dir_full_path), existing_clients)
 
 
 def write_server_ipp_file(vpn_name, client_file, dir_name, output_dir, key_dir, server_network, net_mask):
@@ -306,65 +366,7 @@ def write_server_ipp_file(vpn_name, client_file, dir_name, output_dir, key_dir, 
         _log_clients(vpn_name, msg_no_key, clients_addr_but_not_existing, 3)
 
 
-def write_firewall_config(vpn_name, output_dir, server_network, server_port_in, server_proto):
-    """
-    """
-    # Fill out the specific values for the firewall.
-    firewall_contents = fill_firewall_values(server_network, server_port_in, server_proto)
-
-    # Write config to file
-    _verify_or_make_dir(output_dir)
-    firewall_full_path = os.path.abspath("{}/firewall.sh".format(output_dir))
-
-    with open(firewall_full_path, "w") as my_file:
-        my_file.write(firewall_contents)
-    print("[{}] Firewall rules written to: {}".format(vpn_name, firewall_full_path))
-
-
-def write_client_profiles(output_dir, vpn_name, dns_address, key_dir, client_name, server_port_out,
-                          server_aliases, server_proto, cipher):
-
-    # Fill-in the values for this client
-    client_l, client_lr, client_w, client_wr = fill_client_values(dns_address, key_dir, client_name, server_port_out,
-                                                                  server_aliases, server_proto, cipher)
-
-    dir_linux = "{}/clients/{}/linux/".format(output_dir, client_name)
-    dir_windows = "{}/clients/{}/windows/".format(output_dir, client_name)
-    _verify_or_make_dir(dir_linux)
-    _verify_or_make_dir(dir_windows)
-
-    # Save the linux profiles
-    with open("{}/{}.conf".format(dir_linux, vpn_name), "w", newline='\n') as myfile:
-        myfile.write(client_l)
-
-    with open("{}/{}-redirect.conf".format(dir_linux, vpn_name), "w", newline='\n') as myfile:
-        myfile.write(client_lr)
-
-    # Save the windows profiles
-    with open("{}/{}.ovpn".format(dir_linux, vpn_name), "w", newline='\r\n') as myfile:
-        myfile.write(client_w)
-
-    with open("{}/{}-redirect.ovpn".format(dir_linux, vpn_name), "w", newline='\r\n') as myfile:
-        myfile.write(client_wr)
-
-
-def get_all_clients_by_keyfiles(key_dir):
-    ignore_files = ['ta.key', 'ca.key', 'server.key']
-    key_files = glob.glob("{}/*.key".format(key_dir))
-    existing_clients = [y.split('.')[0] for y in [os.path.basename(x) for x in key_files] if y not in ignore_files]
-    return existing_clients
-
-
-def write_all_client_profiles(output_dir, vpn_name, dns_address, key_dir, server_port_out,
-                              server_aliases, server_proto, cipher):
-    existing_clients = get_all_clients_by_keyfiles(key_dir)
-    out_dir_full_path = os.path.abspath(output_dir)
-    for client_name in existing_clients:
-        write_client_profiles(out_dir_full_path, vpn_name, dns_address, key_dir, client_name,
-                              server_port_out, server_aliases, server_proto, cipher)
-    _log_clients(vpn_name, "Profiles written to {}".format(out_dir_full_path), existing_clients)
-
-
+#%%
 def write_complete_config(cfg):
     write_server_config(
         vpn_name=cfg['VPN_NAME'],

@@ -31,7 +31,6 @@ def parse_cl_args(arguments):
     )
 
     some_args = a_parser.parse_args(arguments)
-    # print(args)
     return some_args, a_parser
 
 
@@ -61,5 +60,3 @@ if __name__ == "__main__":
     if args.output_dir is not None:
         for a_dir in client_dirs:
             copy_tree(a_dir, args.output_dir)
-
-    print(args)

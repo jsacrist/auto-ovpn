@@ -30,7 +30,24 @@ def _get_ip_prefix(server_network, net_mask):
 
 def _log_clients(vpn_name, message, client_list):
     print("[{}] {}:".format(vpn_name, message))
-    print('\t{}\n'.format(", ".join(client_list)))
+    for line in _list_to_multiline_str(client_list, 100).split('\n'):
+        print("\t\t" + line)
+
+
+def _list_to_multiline_str(a_list, num_char=80):
+    str_out = ""
+    for idx, element in enumerate(a_list):
+
+        if idx > 0:
+            str_out = str_out + ","
+
+        if len(str_out.split('\n')[-1]) + len(element) > num_char:
+            str_out = str_out + "\n"
+        elif idx > 0:
+            str_out = str_out + " "
+
+        str_out = str_out + element
+    return str_out
 
 
 def _verify_or_make_dir(some_dir):
@@ -274,16 +291,18 @@ def write_server_ipp_file(client_file, dir_name, output_dir, key_dir, vpn_name, 
     with open("{}/ipp.txt".format(output_dir), "w") as my_file:
         my_file.write(static_ips)
 
-    msg_written = "The following clients had their profiles written:"
-    _log_clients(vpn_name, msg_written, clients_inner_join)
+    if len(clients_inner_join) > 0:
+        msg_written = "Profiles written"
+        _log_clients(vpn_name, msg_written, clients_inner_join)
 
-    msg_not_in_client_file = ("The following clients have a key-pair, but were " +
-                              "not written to ipp.txt because they were not found in {}".format(client_file))
-    _log_clients(vpn_name, msg_not_in_client_file, clients_existing_but_no_addr)
+    if len(clients_existing_but_no_addr) > 0:
+        msg_not_in_client_file = ("Profiles written, but no entry added to ipp.txt " +
+                                  "(no matching entry in {})".format(client_file))
+        _log_clients(vpn_name, msg_not_in_client_file, clients_existing_but_no_addr)
 
-    msg_no_key = ("The following clients were found in {}, but had no ".format(client_file) +
-                  "key-pair and were not written")
-    _log_clients(vpn_name, msg_no_key, clients_addr_but_not_existing)
+    if len(clients_addr_but_not_existing) > 0:
+        msg_no_key = "Profiles NOT written (entries found in {}, but no key-pair found)".format(client_file)
+        _log_clients(vpn_name, msg_no_key, clients_addr_but_not_existing)
 
 
 def write_firewall_config(output_dir, server_network, server_port_in, server_proto):

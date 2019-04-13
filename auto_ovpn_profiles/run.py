@@ -49,7 +49,11 @@ if __name__ == "__main__":
         exit()
 
     # Print the package name and version
-    print("This is {} version {}".format(auto_ovpn_profiles.name, auto_ovpn_profiles.__version__))
+    print("This is {} version {} ({})".format(
+        auto_ovpn_profiles.name,
+        auto_ovpn_profiles.__version__,
+        auto_ovpn_profiles.__full_revisionid__)
+    )
 
     # If no files were given, display the help text and quit
     if args.file is None:

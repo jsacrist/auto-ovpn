@@ -2,10 +2,13 @@
 # -*- coding: utf-8 -*-
 import argparse
 import sys
+from sys import exit
 import os
 import glob
 from distutils.dir_util import copy_tree
-from auto_ovpn_profiles import parse_options_from_yaml, write_complete_config, get_all_clients_by_keyfiles
+import auto_ovpn_profiles
+from auto_ovpn_profiles import (parse_options_from_yaml, write_complete_config,
+                                get_all_clients_by_keyfiles)
 
 
 def parse_cl_args(arguments):
@@ -44,6 +47,9 @@ if __name__ == "__main__":
             example_yaml = myfile.read()
             print(example_yaml)
         exit()
+
+    # Print the package name and version
+    print("This is {} version {}".format(auto_ovpn_profiles.name, auto_ovpn_profiles.__version__))
 
     # If no files were given, display the help text and quit
     if args.file is None:

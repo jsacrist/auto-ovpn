@@ -14,7 +14,7 @@ def parse_cl_args(arguments):
     a_parser.add_argument(
         "-e", "--example",
         action='store_true',
-        help="Print out an example of a configuration yaml file."
+        help="Print out an example of a configuration yaml file and exit."
     )
 
     a_parser.add_argument(

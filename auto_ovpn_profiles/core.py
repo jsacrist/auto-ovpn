@@ -22,7 +22,8 @@ DEFAULT_VALUES = dict(
 
 #%% "Internal" functions
 def _get_ip_prefix(server_network, net_mask):
-    ip_prefix = ''.join(["{}.".format(x) for (x, y) in zip(server_network.split('.'), net_mask.split('.')) if y != "0"])
+    ip_prefix = ''.join(["{}.".format(x) for (x, y) in zip(server_network.split('.'),
+                                                           net_mask.split('.')) if y != "0"])
     num_octets = len(ip_prefix.split('.'))
     ip_prefix = ip_prefix if num_octets == 4 else "{}0.".format(ip_prefix)
     return ip_prefix
@@ -110,6 +111,7 @@ def fill_server_values(key_dir, server_network, server_port_in, config_path,
         contents_ta_key = myfile.read()
 
     # Fill-in the 'template' with the contents of keys, certificates, etc...
+    # TODO: Refactor this using jinja2.Template.  The template can be a text file and the user can pass their own
     server_file_contents = (
             "# {} will be a new VPN, must not conflict with existing nets\n".format(server_network) +
             "server {} {}\n".format(server_network, server_mask) +
@@ -140,6 +142,7 @@ def fill_server_values(key_dir, server_network, server_port_in, config_path,
 
 
 def fill_firewall_values(server_network, server_port_in, server_proto):
+    # TODO: Refactor this using jinja2.Template.  The template can be a text file and the user can pass their own
     firewall_file_contents = (
         "################################################################################\n" +
         "## FIREWALL START\n" +
@@ -182,6 +185,7 @@ def fill_base_client_values(key_dir, client_name, server_port_out, server_aliase
     if isinstance(server_aliases, list) or isinstance(server_aliases, tuple):
         aliases_str = '\n'.join(["remote {}".format(x) for x in server_aliases])
 
+    # TODO: Refactor this using jinja2.Template.  The template can be a text file and the user can pass their own
     client_file_contents = (
             "{}\n".format(aliases_str) +
             "client\n" +
@@ -221,6 +225,7 @@ def fill_client_values(dns_address, key_dir, client_name, server_port_out,
 
     """
     # fill out the variables for a 'base' client.
+    # TODO: Refactor this using jinja2.Template.  The template can be a text file and the user can pass their own
     client_std = fill_base_client_values(key_dir, client_name, server_port_out, server_aliases,
                                          server_proto, cipher)
 

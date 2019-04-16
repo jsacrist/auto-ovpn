@@ -191,9 +191,8 @@ def fill_client_values(dns_address, key_dir, client_name, server_port_out,
 
     """
     # fill out the variables for a 'base' client.
-    # TODO: Refactor this using jinja2.Template.  The template can be a text file and the user can pass their own
-    client_std = fill_base_client_values(key_dir, client_name, server_port_out, server_aliases,
-                                         server_proto, cipher)
+    client_std = fill_base_client_values(
+        key_dir, client_name, server_port_out, server_aliases, server_proto, cipher)
 
     # Define some strings needed for windows and linux profiles
     redir_string = "redirect-gateway def1 bypass-dhcp\n"
@@ -206,20 +205,18 @@ def fill_client_values(dns_address, key_dir, client_name, server_port_out,
     # Put together the strings for linux profiles
     client_linux = file_header + "# LINUX profile\n" + client_std
     client_linux_redir = (
-            file_header + "# LINUX profile (redirect)\n" + client_std +
-            redir_string +
-            "script-security 2\n" +
-            "up \"{}\"\n".format(resolv_line) +
-            "down \"{}\"\n".format(resolv_line) +
-            dns_line
-    )
+        file_header + "# LINUX profile (redirect)\n" + client_std +
+        redir_string +
+        "script-security 2\n" +
+        "up \"{}\"\n".format(resolv_line) +
+        "down \"{}\"\n".format(resolv_line) +
+        dns_line)
 
     # Put together the strings for windows profiles
     client_windows = file_header + "# WINDOWS/ANDROID profile\n" + client_std
-    client_windows_redir = (file_header + "# WINDOWS/ANDROID profile (redirect)\n" + client_std +
-                            redir_string +
-                            "block-outside-dns\n" +
-                            dns_line)
+    client_windows_redir = (
+        file_header + "# WINDOWS/ANDROID profile (redirect)\n" + client_std +
+        redir_string + "block-outside-dns\n" + dns_line)
 
     return client_linux, client_linux_redir, client_windows, client_windows_redir
 
@@ -253,10 +250,10 @@ def write_single_client_profiles(output_dir, vpn_name, dns_address, key_dir, cli
         myfile.write(client_lr)
 
     # Save the windows profiles
-    with open("{}/{}.ovpn".format(dir_linux, vpn_name), "w", newline='\r\n') as myfile:
+    with open("{}/{}.ovpn".format(dir_windows, vpn_name), "w", newline='\r\n') as myfile:
         myfile.write(client_w)
 
-    with open("{}/{}-redirect.ovpn".format(dir_linux, vpn_name), "w", newline='\r\n') as myfile:
+    with open("{}/{}-redirect.ovpn".format(dir_windows, vpn_name), "w", newline='\r\n') as myfile:
         myfile.write(client_wr)
 
 

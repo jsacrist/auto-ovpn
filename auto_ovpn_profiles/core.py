@@ -67,12 +67,12 @@ def parse_options_from_yaml(yaml_file):
     for x in REQUIRED_VARS:
         assert x in cfg, "The provided YAML file does not contain the required value for[{}]".format(x)
 
-    # TODO: Ensure the provided values in the YAML file are valid
-
     # Use default values for the variables that no value was provided, if one was provided use that instead.
     for x in DEFAULT_VALUES:
         if x not in cfg:
             cfg[x] = DEFAULT_VALUES[x]
+
+    # TODO: Ensure the provided values in the YAML file are valid
 
     # Add config file's dir name:
     cfg['DIR_NAME'] = os.path.dirname(os.path.abspath(yaml_file))
@@ -257,14 +257,11 @@ def write_single_client_profiles(output_dir, vpn_name, dns_address, key_dir, cli
         myfile.write(client_wr)
 
 
-def write_server_config(vpn_name, output_dir, key_dir, server_network, server_port_in, config_path,
-                        server_proto, server_mask, cipher):
-    # TODO: should server_mask be called net_mask?
-    """
-    """
+def write_server_config(vpn_name, output_dir, key_dir, server_network, server_port_in,
+                        config_path, server_proto, net_mask, cipher):
     # Read the files found in key_dir and create a string variable with the config. file contents
     config_file_contents = fill_server_values(key_dir, server_network, server_port_in,
-                                              config_path, server_proto, server_mask, cipher)
+                                              config_path, server_proto, net_mask, cipher)
 
     # Write config to file
     _verify_or_make_dir(output_dir)
@@ -345,7 +342,8 @@ def write_complete_config(cfg):
         server_port_in=cfg['SERVER_PORT_IN'],
         config_path=cfg['CONFIG_PATH'],
         server_proto=cfg['SERVER_PROTO'],
-        server_mask=cfg['NET_MASK'],
+        # server_mask=cfg['NET_MASK'],
+        net_mask=cfg['NET_MASK'],
         cipher=cfg['CIPHER']
     )
 

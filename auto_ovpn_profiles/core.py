@@ -122,7 +122,7 @@ def fill_server_values(key_dir, server_network, server_port_in, config_path,
         server_proto=server_proto, server_port_in=server_port_in, config_path=config_path,
         contents_ca_crt=contents_ca_crt, contents_server_crt=contents_server_crt,
         contents_server_key=contents_server_key, contents_dh2048=contents_dh2048,
-        contents_ta_key=contents_ta_key,)
+        contents_ta_key=contents_ta_key,) + "\n\n"
 
     return server_file_contents
 
@@ -133,7 +133,7 @@ def fill_firewall_values(server_network, server_port_in, server_proto):
     firewall_file_template = Template(firewall_sh_template)
 
     firewall_file_contents = firewall_file_template.render(
-        server_proto=server_proto, server_port_in=server_port_in, server_network=server_network,)
+        server_proto=server_proto, server_port_in=server_port_in, server_network=server_network,) + "\n\n"
     return firewall_file_contents
 
 
@@ -159,25 +159,17 @@ def fill_base_client_values(key_dir, client_name, server_port_out, server_aliase
     if isinstance(server_aliases, list) or isinstance(server_aliases, tuple):
         aliases_str = '\n'.join(["remote {}".format(x) for x in server_aliases])
 
-    # TODO: Refactor this using jinja2.Template.  The template can be a text file and the user can pass their own
-    client_file_contents = (
-            "{}\n".format(aliases_str) +
-            "client\n" +
-            "cipher {}\n".format(cipher) +
-            "proto {}\n".format(server_proto) +
-            "port {}\n".format(server_port_out) +
-            "dev tun\n" +
-            "float\n" +
-            "verb 5\n" +
-            "comp-lzo\n" +
-            "remote-cert-tls server\n" +
-            "auth-nocache\n\n" +
-            "<ca>\n{}</ca>\n\n".format(contents_ca_crt) +
-            "<cert>\n{}</cert>\n\n".format(contents_client_crt) +
-            "<key>\n{}</key>\n\n".format(contents_client_key) +
-            "key-direction 1\n" +
-            "<tls-auth>\n{}</tls-auth>\n\n".format(contents_ta_key)
-        )
+    with open("{}/client.j2".format(os.path.dirname(__file__)), 'r') as myfile:
+        client_template = myfile.read()
+    client_file_template = Template(client_template)
+
+    client_file_contents = client_file_template.render(
+        aliases_str=aliases_str, cipher=cipher, server_proto=server_proto,
+        server_port_out=server_port_out, contents_ca_crt=contents_ca_crt,
+        contents_client_crt=contents_client_crt,
+        contents_client_key=contents_client_key,
+        contents_ta_key=contents_ta_key,
+        ) + "\n\n"
 
     return client_file_contents
 

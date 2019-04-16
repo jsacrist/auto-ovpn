@@ -1,0 +1,28 @@
+{{ aliases_str }}
+client
+cipher {{ cipher }}
+proto {{ server_proto }}
+port {{ server_port_out }}
+dev tun
+float
+verb 5
+comp-lzo
+remote-cert-tls server
+auth-nocache
+
+<ca>
+{{ contents_ca_crt }}
+</ca>
+
+<cert>
+{{ contents_client_crt }}
+</cert>
+
+<key>
+{{ contents_client_key }}
+</key>
+
+key-direction 1
+<tls-auth>
+{{ contents_ta_key }}
+</tls-auth>

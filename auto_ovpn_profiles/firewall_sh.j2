@@ -1,0 +1,19 @@
+################################################################################
+## FIREWALL START
+# NOTE: The following iptables lines should be placed either:
+#   a) In the startup script of a dd-wrt router.
+# Or
+#   b) in the /etc/rc.local file of a Debian-based distro.
+################################################################################
+#
+iptables -A OUTPUT -o tun+ -j ACCEPT
+
+# Accept data coming from {{ server_proto }} port {{ server_port_in }}
+iptables --insert INPUT 1 --protocol {{ server_proto }} --dport {{ server_port_in }} --jump ACCEPT
+
+# Re-route traffic from VPN clients to the internet
+iptables -I FORWARD 1 --source {{ server_network }}/24 -j ACCEPT
+iptables -t nat -A POSTROUTING -s {{ server_network }}/24 ! -d {{ server_network }}/24 -j MASQUERADE
+
+## FIREWALL END
+################################################################################

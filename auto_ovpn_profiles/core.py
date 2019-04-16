@@ -128,24 +128,12 @@ def fill_server_values(key_dir, server_network, server_port_in, config_path,
 
 
 def fill_firewall_values(server_network, server_port_in, server_proto):
-    # TODO: Refactor this using jinja2.Template.  The template can be a text file and the user can pass their own
-    firewall_file_contents = (
-        "################################################################################\n" +
-        "## FIREWALL START\n" +
-        "# NOTE: The following iptables lines should be placed either:\n" +
-        "#   a) In the startup script of a dd-wrt router.\n" +
-        "# Or\n" +
-        "#   b) in the /etc/rc.local file of a Debian-based distro.\n" +
-        "################################################################################\n#\n" +
-        "iptables -A OUTPUT -o tun+ -j ACCEPT\n\n" +
-        "# Accept data coming from {} port {}\n".format(server_proto, server_port_in) +
-        "iptables --insert INPUT 1 --protocol {} --dport {} --jump ACCEPT\n\n".format(server_proto, server_port_in) +
-        "# Re-route traffic from VPN clients to the internet\n" +
-        "iptables -I FORWARD 1 --source {}/24 -j ACCEPT\n".format(server_network) +
-        "iptables -t nat -A POSTROUTING -s {}/24 ! -d {}/24 -j MASQUERADE\n\n".format(server_network, server_network) +
-        "## FIREWALL END\n" +
-        "################################################################################\n"
-    )
+    with open("{}/firewall_sh.j2".format(os.path.dirname(__file__)), 'r') as myfile:
+        firewall_sh_template = myfile.read()
+    firewall_file_template = Template(firewall_sh_template)
+
+    firewall_file_contents = firewall_file_template.render(
+        server_proto=server_proto, server_port_in=server_port_in, server_network=server_network,)
     return firewall_file_contents
 
 

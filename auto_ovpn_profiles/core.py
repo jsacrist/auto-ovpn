@@ -313,8 +313,9 @@ def write_server_ipp_file(vpn_name, client_file, dir_name, output_dir, key_dir, 
     ip_prefix = _get_ip_prefix(server_network, net_mask)
     static_ips = "## ipp.txt for {} ({})\n## certificate_client_name,ip_address\n".format(vpn_name, server_network)
 
-    for a_client in clients_inner_join:
-        ip_ending = clients_inner_join[a_client]
+    # for a_client in clients_inner_join:
+    #     ip_ending = clients_inner_join[a_client]
+    for a_client, ip_ending in sorted(clients_inner_join.items(), key=lambda kv: kv[1]):
         static_ips += "{},{}{}\n".format(a_client, ip_prefix, ip_ending)
 
     with open("{}/ipp.txt".format(output_dir), "w") as my_file:

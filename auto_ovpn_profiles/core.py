@@ -2,6 +2,8 @@
 import os
 import glob
 import yaml
+from jinja2 import Template
+import difflib
 from ._version import get_versions
 
 
@@ -111,32 +113,16 @@ def fill_server_values(key_dir, server_network, server_port_in, config_path,
         contents_ta_key = myfile.read()
 
     # Fill-in the 'template' with the contents of keys, certificates, etc...
-    # TODO: Refactor this using jinja2.Template.  The template can be a text file and the user can pass their own
-    server_file_contents = (
-            "# {} will be a new VPN, must not conflict with existing nets\n".format(server_network) +
-            "server {} {}\n".format(server_network, server_mask) +
-            "cipher {}\n".format(cipher) +
-            "proto {}\n".format(server_proto) +
-            "port {}\n".format(server_port_in) +
-            "dev tun\n" +
-            "mute 10\n" +
-            "ifconfig-pool-persist {}/ipp.txt 0\n\n".format(config_path) +
-            "persist-key\n" +
-            "persist-tun\n" +
-            "keepalive 10 60\n" +
-            "topology subnet\n" +
-            "comp-lzo adaptive\n" +
-            "client-to-client\n" +
-            "script-security 2\n" +
-            "daemon\n" +
-            "verb 5\n\n" +
-            "<ca>\n{}</ca>\n\n".format(contents_ca_crt) +
-            "<cert>\n{}</cert>\n\n".format(contents_server_crt) +
-            "<key>\n{}</key>\n\n".format(contents_server_key) +
-            "<dh>\n{}</dh>\n\n".format(contents_dh2048) +
-            "key-direction 0\n" +
-            "<tls-auth>\n{}</tls-auth>\n\n".format(contents_ta_key)
-    )
+    with open("{}/server_conf.j2".format(os.path.dirname(__file__)), 'r') as myfile:
+        server_conf_template = myfile.read()
+    server_file_template = Template(server_conf_template)
+
+    server_file_contents = server_file_template.render(
+        server_network=server_network, server_mask=server_mask, cipher=cipher,
+        server_proto=server_proto, server_port_in=server_port_in, config_path=config_path,
+        contents_ca_crt=contents_ca_crt, contents_server_crt=contents_server_crt,
+        contents_server_key=contents_server_key, contents_dh2048=contents_dh2048,
+        contents_ta_key=contents_ta_key,)
 
     return server_file_contents
 
@@ -309,6 +295,7 @@ def write_server_config(vpn_name, output_dir, key_dir, server_network, server_po
 
     with open(server_cfg_full_path, "w") as my_file:
         my_file.write(config_file_contents)
+
     print("[{}] OpenVPN configuration file written to: {}".format(vpn_name, server_cfg_full_path))
 
 

@@ -1,0 +1,39 @@
+# {{ server_network }} will be a new VPN, must not conflict with existing nets
+server {{ server_network }} {{ server_mask }}
+cipher {{ cipher }}
+proto {{ server_proto }}
+port {{ server_port_in }}
+dev tun
+mute 10
+ifconfig-pool-persist {{ config_path }}/ipp.txt 0
+
+persist-key
+persist-tun
+keepalive 10 60
+topology subnet
+comp-lzo adaptive
+client-to-client
+script-security 2
+daemon
+verb 5
+
+<ca>
+{{ contents_ca_crt }}
+</ca>
+
+<cert>
+{{ contents_server_crt }}
+</cert>
+
+<key>
+{{ contents_server_key }}
+</key>
+
+<dh>
+{{ contents_dh2048 }}
+</dh>
+
+key-direction 0
+<tls-auth>
+{{ contents_ta_key }}
+</tls-auth>

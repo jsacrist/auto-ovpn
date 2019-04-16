@@ -3,8 +3,6 @@ import os
 import glob
 import yaml
 from jinja2 import Template
-import difflib
-from ._version import get_versions
 
 
 #%% "Global" variables
@@ -95,7 +93,6 @@ def parse_client_yaml_file(yaml_file, dir_name):
 #%% Template-filling functions
 def fill_server_values(key_dir, server_network, server_port_in, config_path,
                        server_proto, server_mask, cipher):
-
     # Open the files containing keys, certificates, etc.
     with open("{}/ca.crt".format(key_dir), 'r') as myfile:
         contents_ca_crt = myfile.read()
@@ -139,9 +136,6 @@ def fill_firewall_values(server_network, server_port_in, server_proto):
 
 def fill_base_client_values(key_dir, client_name, server_port_out, server_aliases,
                             server_proto, cipher):
-    """
-    """
-
     # Open the files containing keys, certificates, etc.
     with open("{}/ca.crt".format(key_dir), 'r') as myfile:
         contents_ca_crt = myfile.read()
@@ -232,7 +226,6 @@ def get_all_clients_by_keyfiles(key_dir):
 #%% File-writing functions
 def write_single_client_profiles(output_dir, vpn_name, dns_address, key_dir, client_name, server_port_out,
                                  server_aliases, server_proto, cipher):
-
     # Fill-in the values for this client
     client_l, client_lr, client_w, client_wr = fill_client_values(dns_address, key_dir, client_name, server_port_out,
                                                                   server_aliases, server_proto, cipher)
@@ -274,8 +267,6 @@ def write_server_config(vpn_name, output_dir, key_dir, server_network, server_po
 
 
 def write_firewall_config(vpn_name, output_dir, server_network, server_port_in, server_proto):
-    """
-    """
     # Fill out the specific values for the firewall.
     firewall_contents = fill_firewall_values(server_network, server_port_in, server_proto)
 
@@ -313,8 +304,6 @@ def write_server_ipp_file(vpn_name, client_file, dir_name, output_dir, key_dir, 
     ip_prefix = _get_ip_prefix(server_network, net_mask)
     static_ips = "## ipp.txt for {} ({})\n## certificate_client_name,ip_address\n".format(vpn_name, server_network)
 
-    # for a_client in clients_inner_join:
-    #     ip_ending = clients_inner_join[a_client]
     for a_client, ip_ending in sorted(clients_inner_join.items(), key=lambda kv: kv[1]):
         static_ips += "{},{}{}\n".format(a_client, ip_prefix, ip_ending)
 
@@ -322,7 +311,6 @@ def write_server_ipp_file(vpn_name, client_file, dir_name, output_dir, key_dir, 
         my_file.write(static_ips)
 
     # Log everything that was done
-
     if len(clients_existing_but_no_addr) > 0:
         msg_not_in_client_file = ("Profiles NOT added to ipp.txt " +
                                   "(no matching entry in {})".format(client_list_full_path))
@@ -343,7 +331,6 @@ def write_complete_config(cfg):
         server_port_in=cfg['SERVER_PORT_IN'],
         config_path=cfg['CONFIG_PATH'],
         server_proto=cfg['SERVER_PROTO'],
-        # server_mask=cfg['NET_MASK'],
         net_mask=cfg['NET_MASK'],
         cipher=cfg['CIPHER']
     )

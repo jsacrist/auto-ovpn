@@ -628,6 +628,9 @@ def git_versions_from_keywords(keywords, tag_prefix, verbose):
     # no suitable tags, so version is "0+unknown", but full hex is still there
     if verbose:
         print("no suitable tags, using unknown + full revision id")
+    # JS: if we reached here maybe we should raise an exception
+    if len(tags) == 0:
+        raise NotThisMethod("No tags at all git_versions_from_keywords()@632")
     return {"version": "0+unknown",
             "full-revisionid": keywords["full"].strip(),
             "dirty": False, "error": "no suitable tags", "date": None}
@@ -1020,6 +1023,9 @@ def git_versions_from_keywords(keywords, tag_prefix, verbose):
     # no suitable tags, so version is "0+unknown", but full hex is still there
     if verbose:
         print("no suitable tags, using unknown + full revision id")
+    # JS: if we reached here maybe we should raise an exception
+    if len(tags) == 0:
+        raise NotThisMethod("No tags at all git_versions_from_keywords()@1027")
     return {"version": "0+unknown",
             "full-revisionid": keywords["full"].strip(),
             "dirty": False, "error": "no suitable tags", "date": None}

@@ -22,5 +22,5 @@ setuptools.setup(
     classifiers=["Programming Language :: Python :: 3",
                  "License :: GPLv3 License",
                  "Operating System :: OS Independent", ],
-    install_requires=["yaml>=3.11", "jinja2>=2.10"]
+    install_requires=["pyyaml>=3.11", "jinja2>=2.10"]
 )

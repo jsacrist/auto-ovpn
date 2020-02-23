@@ -4,12 +4,12 @@ import argparse
 import sys
 import os
 import glob
-import auto_ovpn_profiles
-from .version import get_version
+import auto_ovpn
+# from .version import get_version
 from sys import exit
 from distutils.dir_util import copy_tree
-from auto_ovpn_profiles import (parse_options_from_yaml, write_complete_config,
-                                get_all_clients_by_keyfiles)
+from auto_ovpn import (parse_options_from_yaml, write_complete_config,
+                       get_all_clients_by_keyfiles)
 
 
 def parse_cl_args(arguments):
@@ -37,7 +37,8 @@ def parse_cl_args(arguments):
     a_parser.add_argument(
         "-v", "--version",
         action="version",
-        version=get_version()["version"],
+        # version=get_version()["version"],
+        version=auto_ovpn.__version__,
         help="Print the version of this package and exit.",
     )
 
@@ -45,7 +46,7 @@ def parse_cl_args(arguments):
     return some_args, a_parser
 
 
-if __name__ == "__main__":
+def main():
     args, parser = parse_cl_args(sys.argv[1:])
 
     # If the `example` flag was passed, print out the example yaml and quit
@@ -58,9 +59,9 @@ if __name__ == "__main__":
 
     # Print the package name and version
     print("This is {} version {} ({})".format(
-        auto_ovpn_profiles.name,
-        auto_ovpn_profiles.__version__,
-        auto_ovpn_profiles.__full_revisionid__)
+        auto_ovpn.name,
+        auto_ovpn.__version__,
+        auto_ovpn.__full_revisionid__)
     )
 
     # If no files were given, display the help text and quit
@@ -78,3 +79,7 @@ if __name__ == "__main__":
     if args.output_dir is not None:
         for a_dir in client_dirs:
             copy_tree(a_dir, args.output_dir)
+
+
+if __name__ == "__main__":
+    main()

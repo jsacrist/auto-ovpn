@@ -1,4 +1,2 @@
-include versioneer.py
-include auto_ovpn_profiles/_version.py
-include auto_ovpn_profiles/vpn_example.yml
-include auto_ovpn_profiles/*.j2
+include auto_ovpn/vpn_example.yml
+include auto_ovpn/*.j2

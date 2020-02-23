@@ -1,18 +1,22 @@
 #
-PKG = auto_ovpn_profiles
+PKG = auto_ovpn
 PY  = python3
 PIP = pip3
-
-#$(eval WHL=$(shell find dist/ -name "auto_ovpn_profiles*" -print0 | xargs -r -0 ls -1 -t | head -1) )
-#@echo "$(WHL)"
 
 build :
 	@echo "Building..."
 	$(PY) setup.py bdist_wheel
 
-install-dev :
-	@echo -n "Installing in developer mode "
+install-dev : build
+	@echo "Installing in `developer mode`"
 	$(PIP) install --editable .
+
+install : build
+	@echo -n "Installing "
+	@$(eval DIST_WHL=$(shell find dist/ -name "$(PKG)*" -print0 | xargs -r -0 ls -1 -t | head -1) )
+	@$(eval WHL=$(shell basename $(DIST_WHL)))
+	@echo "$(WHL)"
+	#cd dist && $(PIP) install --user $(WHL)
 
 uninstall :
 	@echo "Uninstalling..."

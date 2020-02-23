@@ -15,7 +15,7 @@ setuptools.setup(
     description="A package to automatically create OpenVPN files (*.ovpn) issued by a CA.",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/jsacrist/auto_ovpn_profiles",
+    url="https://github.com/jsacrist/auto-ovpn.git",
     packages=setuptools.find_packages(exclude=("build", "dist", "*.egg-info")),
     include_package_data=True,
     classifiers=[

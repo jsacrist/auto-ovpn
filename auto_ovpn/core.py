@@ -110,7 +110,7 @@ def fill_server_values(key_dir, server_network, server_port_in, config_path,
         contents_ta_key = myfile.read()
 
     # Fill-in the 'template' with the contents of keys, certificates, etc...
-    with open("{}/server_conf.j2".format(os.path.dirname(__file__)), 'r') as myfile:
+    with open("{}/templates/server_conf.j2".format(os.path.dirname(__file__)), 'r') as myfile:
         server_conf_template = myfile.read()
     server_file_template = Template(server_conf_template)
 
@@ -125,7 +125,7 @@ def fill_server_values(key_dir, server_network, server_port_in, config_path,
 
 
 def fill_firewall_values(server_network, server_port_in, server_proto):
-    with open("{}/firewall_sh.j2".format(os.path.dirname(__file__)), 'r') as myfile:
+    with open("{}/templates/firewall_sh.j2".format(os.path.dirname(__file__)), 'r') as myfile:
         firewall_sh_template = myfile.read()
     firewall_file_template = Template(firewall_sh_template)
 
@@ -153,7 +153,7 @@ def fill_base_client_values(key_dir, client_name, server_port_out, server_aliase
     if isinstance(server_aliases, list) or isinstance(server_aliases, tuple):
         aliases_str = '\n'.join(["remote {}".format(x) for x in server_aliases])
 
-    with open("{}/client.j2".format(os.path.dirname(__file__)), 'r') as myfile:
+    with open("{}/templates/client.j2".format(os.path.dirname(__file__)), 'r') as myfile:
         client_template = myfile.read()
     client_file_template = Template(client_template)
 

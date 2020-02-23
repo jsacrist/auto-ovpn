@@ -2,11 +2,12 @@
 # -*- coding: utf-8 -*-
 import argparse
 import sys
-from sys import exit
 import os
 import glob
-from distutils.dir_util import copy_tree
 import auto_ovpn_profiles
+from .version import get_version
+from sys import exit
+from distutils.dir_util import copy_tree
 from auto_ovpn_profiles import (parse_options_from_yaml, write_complete_config,
                                 get_all_clients_by_keyfiles)
 
@@ -31,6 +32,13 @@ def parse_cl_args(arguments):
         "-o", "--output-dir",
         type=str,
         help="(optional) Path to an output directory where all the vpn profiles should be placed."
+    )
+
+    a_parser.add_argument(
+        "-v", "--version",
+        action="version",
+        version=get_version()["version"],
+        help="Print the version of this package and exit.",
     )
 
     some_args = a_parser.parse_args(arguments)

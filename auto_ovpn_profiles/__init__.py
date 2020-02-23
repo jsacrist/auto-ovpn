@@ -1,6 +1,8 @@
 from .core import *
-from ._version import get_versions
-__version__ = get_versions()['version']
-__full_revisionid__ = get_versions()['full-revisionid']
-del get_versions
+from .version import get_version
+
+
+__version__ = get_version()["version"]
+__full_revisionid__ = get_version()["hash"]
+del get_version
 name = "auto_ovpn_profiles"

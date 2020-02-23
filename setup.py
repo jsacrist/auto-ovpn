@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import setuptools
-import versioneer
+from auto_ovpn_profiles.version import get_version
 
 
 with open("README.md", "r") as myfile:
@@ -9,18 +9,23 @@ with open("README.md", "r") as myfile:
 
 setuptools.setup(
     name="auto_ovpn_profiles",
-    version=versioneer.get_version(),
-    cmdclass=versioneer.get_cmdclass(),
+    version=get_version()["version"],
     author="Jorge Sacristan",
     author_email="j.sacris@gmail.com",
-    description="A small example package",
+    description="A package to automatically create OpenVPN files (*.ovpn) issued by a CA.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/jsacrist/auto_ovpn_profiles",
-    packages=setuptools.find_packages(),
+    packages=setuptools.find_packages(exclude=("build", "dist", "*.egg-info")),
     include_package_data=True,
-    classifiers=["Programming Language :: Python :: 3",
-                 "License :: GPLv3 License",
-                 "Operating System :: OS Independent", ],
-    install_requires=["yaml>=3.11", "jinja2>=2.10"]
+    classifiers=[
+        "Programming Language :: Python :: 3",
+        "License :: GPLv3 License",
+        "Operating System :: OS Independent",
+    ],
+    install_requires=[
+        "pyyaml>=3.11",
+        "jinja2>=2.10",
+        "gitpython>=3.0.8",
+    ],
 )

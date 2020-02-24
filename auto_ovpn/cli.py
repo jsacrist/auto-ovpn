@@ -58,7 +58,7 @@ def main():
         exit()
 
     # Print the package name and version
-    print("This is {} version {} ({})".format(
+    print("This is {} version {} ({})\n".format(
         auto_ovpn.name,
         auto_ovpn.__version__,
         auto_ovpn.__full_revisionid__)

@@ -9,7 +9,7 @@ with open("README.md", "r") as myfile:
 
 setuptools.setup(
     name="auto_ovpn",
-    version=get_version()["version"],
+    version=get_version(save_json=True)["version"],
     author="Jorge Sacristan",
     author_email="j.sacris@gmail.com",
     description="A package to automatically create OpenVPN files (*.ovpn) issued by a CA.",
@@ -25,7 +25,7 @@ setuptools.setup(
     ],
     entry_points={
         "console_scripts": [
-            "auto-ovpn=auto_ovpn.run:main",
+            "auto-ovpn=auto_ovpn.cli:main",
         ]
     },
     install_requires=[

@@ -59,7 +59,7 @@ def _verify_or_make_dir(some_dir):
 #%% Parser Functions
 def parse_options_from_yaml(yaml_file):
     with open(yaml_file, 'r') as myfile:
-        cfg = yaml.load(myfile.read())
+        cfg = yaml.safe_load(myfile.read())
 
     # Validate that the required variables were provided
     for x in REQUIRED_VARS:
@@ -86,7 +86,7 @@ def parse_client_yaml_file(yaml_file, dir_name):
         raise Exception("The specified client file [{}] was not found".format(yaml_file))
 
     with open(found_file, 'r') as myfile:
-        clients = yaml.load(myfile.read())
+        clients = yaml.safe_load(myfile.read())
     return clients, found_file
 
 

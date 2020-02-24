@@ -1,2 +1,2 @@
-include auto_ovpn/vpn_example.yml
-include auto_ovpn/*.j2
+include auto_ovpn/templates/*
+include auto_ovpn/*.json

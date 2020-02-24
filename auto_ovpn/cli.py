@@ -52,13 +52,13 @@ def main():
     # If the `example` flag was passed, print out the example yaml and quit
     if args.example:
         pkg_dir = os.path.dirname(__file__)
-        with open("{}/vpn_example.yml".format(pkg_dir), 'r') as myfile:
+        with open("{}/templates/vpn_example.yml".format(pkg_dir), 'r') as myfile:
             example_yaml = myfile.read()
             print(example_yaml)
         exit()
 
     # Print the package name and version
-    print("This is {} version {} ({})".format(
+    print("This is {} version {} ({})\n".format(
         auto_ovpn.name,
         auto_ovpn.__version__,
         auto_ovpn.__full_revisionid__)

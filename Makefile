@@ -16,7 +16,7 @@ install : build
 	@$(eval DIST_WHL=$(shell find dist/ -name "$(PKG)*" -print0 | xargs -r -0 ls -1 -t | head -1) )
 	@$(eval WHL=$(shell basename $(DIST_WHL)))
 	@echo "$(WHL)"
-	#cd dist && $(PIP) install --user $(WHL)
+	cd dist && $(PIP) install --user $(WHL)
 
 uninstall :
 	@echo "Uninstalling..."

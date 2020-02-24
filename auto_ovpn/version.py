@@ -41,7 +41,7 @@ def _from_git():
         with git.Repo(os.path.realpath(__file__), search_parent_directories=True) as g_repo:
             v_raw = g_repo.git.describe(long=True, dirty=True, broken=True)
             v_compact = g_repo.git.describe(long=False, dirty=False, broken=False)
-            v_long = v_raw.replace("-", "+", 1).replace("-", ".", 1)
+            v_long = v_raw.replace("-", "+", 1).replace("-", ".", 2)
             v_hash = g_repo.head.object.hexsha
     except (git.exc.InvalidGitRepositoryError, git.exc.GitCommandError):
         pass

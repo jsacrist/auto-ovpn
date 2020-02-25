@@ -5,7 +5,6 @@ import sys
 import os
 import glob
 import auto_ovpn
-# from .version import get_version
 from sys import exit
 from distutils.dir_util import copy_tree
 from auto_ovpn import (parse_options_from_yaml, write_complete_config,
@@ -37,7 +36,6 @@ def parse_cl_args(arguments):
     a_parser.add_argument(
         "-v", "--version",
         action="version",
-        # version=get_version()["version"],
         version=auto_ovpn.__version__,
         help="Print the version of this package and exit.",
     )

@@ -1,4 +1,5 @@
 # auto-ovpn
+
 `auto-ovpn` is a Python package to automatically generate OpenVPN profiles based on an existing keys.
 These keys are issued by your own Certificate Authority (CA) or a third-party.
 
@@ -59,5 +60,5 @@ Normally, you would want one config file for each VPN server you're maintaining.
 If you you have 3 config files, then you can create the `*.ovpn` profiles for all 3 servers like so:
 
 ```bash
-auto-ovpn -F vpn1.yml -F vpn2.yml -F vpn3.yml -o ~/vpns/all_configs/
+auto-ovpn -F my_vpn_config_1.yml -F my_vpn_config_2.yml -F my_vpn_config_3.yml -o ~/vpns/all_configs/
 ```

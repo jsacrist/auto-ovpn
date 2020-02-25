@@ -28,7 +28,7 @@ def _from_json():
     try:
         with open(filename, "r") as fp:
             ver_json = json.load(fp)
-    except:
+    except OSError:
         ver_json = dict(version="unknown", is_dirty="True", hash=None, version_long="unknown")
     return ver_json
 

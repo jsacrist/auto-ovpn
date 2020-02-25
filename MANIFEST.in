@@ -1,2 +1,2 @@
+include auto_ovpn/version.json
 include auto_ovpn/templates/*
-include auto_ovpn/*.json

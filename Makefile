@@ -8,7 +8,7 @@ build :
 	$(PY) setup.py bdist_wheel
 
 install-dev : build
-	@echo "Installing in `developer mode`"
+	@echo "Installing in 'developer mode'"
 	$(PIP) install --user --editable .
 
 install : build

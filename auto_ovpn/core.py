@@ -77,7 +77,7 @@ def parse_options_from_yaml(yaml_file):
     for x in REQUIRED_VARS:
         assert (
             x in cfg
-        ), "The provided YAML file does not contain the required value for[{}]".format(x)
+        ), "The provided YAML file does not contain the required value for [{}]".format(x)
 
     # Use default values for the variables that no value was provided,
     # if one was provided use that instead.

@@ -3,8 +3,7 @@ import glob
 
 
 pkg_name = "auto_ovpn"
-# python_versions = ["2.7", "3.5", "3.6", "3.7"]
-python_versions = ["3.6", "3.7"]
+python_versions = ["3.6",]
 
 
 @nox.session(python=python_versions)
@@ -27,3 +26,15 @@ def installable(session):
         "import {} as pkg; print(pkg.__version__); print(pkg.__file__)".format(pkg_name)
     )
     session.run("auto-ovpn")
+
+
+@nox.session(python=python_versions)
+def makefile(session):
+    session.install("-r", "install_requires.txt")
+    session.run("make", "clean", external=True)
+    session.run("make", "build", external=True)
+    session.run("make", "version", external=True)
+    session.install(glob.glob("dist/*.whl")[0])
+    session.run("make", "uninstall", external=True)
+    session.run("make", "uninstall", external=True)
+    session.run("make", "clean", external=True)

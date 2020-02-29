@@ -31,5 +31,9 @@ setuptools.setup(
             "auto-ovpn=auto_ovpn.cli:main",
         ]
     },
+    scripts=[
+        "scripts/auto-ovpn-version.sh",
+        "scripts/auto-ovpn-version.py",
+    ],
     install_requires=install_requires,
 )

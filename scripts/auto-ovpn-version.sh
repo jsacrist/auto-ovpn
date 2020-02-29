@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+
 PY="python3"
 
 echo "Checking Location and __version__ from installed package"

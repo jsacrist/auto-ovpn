@@ -1,7 +1,8 @@
+*.egg-info/
 *.pyc
-.idea/
 dist/
 build/
-*.egg-info/
+.idea/
+.nox/
 .vscode/
 auto_ovpn/version.json

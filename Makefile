@@ -1,7 +1,7 @@
 #
 PKG = auto_ovpn
 PY  = python3
-PIP = pip3
+PIP = $(PY) -m pip
 
 build :
 	@echo "Building..."
@@ -9,7 +9,7 @@ build :
 
 install-dev : build
 	@echo "Installing in `developer mode`"
-	$(PIP) install --editable .
+	$(PIP) install --user --editable .
 
 install : build
 	@echo -n "Installing "
@@ -21,9 +21,15 @@ install : build
 uninstall :
 	@echo "Uninstalling..."
 	$(PIP) uninstall -y $(PKG)
+	pip3 uninstall -y $(PKG)
 
 clean :
 	@echo "Cleaning..."
 	rm -rf build/ dist/ *.egg-info/
 	find . -type f -path "*.pyc" -delete
 	find . -type d -path "*/__pycache__" -delete
+
+version :
+	which $(PY)
+	$(PY) --version
+	$(PIP) --version

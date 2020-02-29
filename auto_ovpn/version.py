@@ -49,13 +49,8 @@ def _from_git():
     version = v_long
     is_dirty = "dirty" in version
 
-    if not is_dirty and version.replace(v_compact, "", ).startswith("+0"):
+    if not is_dirty and version.replace(v_compact, "",).startswith("+0"):
         version = v_compact
 
-    ret_dict = dict(
-        version=version,
-        is_dirty=is_dirty,
-        hash=v_hash,
-        version_long=v_long,
-    )
+    ret_dict = dict(version=version, is_dirty=is_dirty, hash=v_hash, version_long=v_long,)
     return ret_dict

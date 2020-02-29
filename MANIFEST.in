@@ -1,2 +1,1 @@
-include auto_ovpn/version.json
-include auto_ovpn/templates/*
+graft auto_ovpn/

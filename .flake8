@@ -1,0 +1,9 @@
+[flake8]
+ignore = F401, # Ignore "imported but unused" warnings, there are a few false positives when using pytest docstrings
+         E402, # Ignore "module level import not at top of file" sometimes we need to manipulate "PATH"
+         W503, # W503 is not PEP8 compliant, nuff said!
+         W504, # Ignore "line break after binary operator"
+         E265, # This one conflicts with the use of 'notebook-cell' line separators: "%##"
+         F403, # Ignore warnings from importing *, sometimes we need this in init files
+max-line-length = 100
+#exclude = somefile.py

@@ -1,15 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import setuptools
-from auto_ovpn.version import get_version
+import auto_ovpn as pkg
 
 
 with open("README.md", "r") as myfile:
     long_description = myfile.read()
 
+with open("install_requires.txt", "r") as myfile:
+    install_requires = myfile.read()
+
 setuptools.setup(
-    name="auto_ovpn",
-    version=get_version(save_json=True)["version"],
+    name=pkg.name,
+    version=pkg.version.get_version(save_json=True)["version"],
     author="Jorge Sacristan",
     author_email="j.sacris@gmail.com",
     description="A package to automatically create OpenVPN files (*.ovpn) issued by a CA.",
@@ -28,9 +31,5 @@ setuptools.setup(
             "auto-ovpn=auto_ovpn.cli:main",
         ]
     },
-    install_requires=[
-        "pyyaml>=3.11",
-        "jinja2>=2.10",
-        "gitpython>=3.0.8",
-    ],
+    install_requires=install_requires,
 )
